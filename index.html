@@ -1,0 +1,3760 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ProMatX — Properties of Material eXplorer</title>
+  <meta name="description"
+    content="Calculate attenuation coefficients and shielding parameters for any material composition. Supports 80 standard energies, isotope sources, and batch analysis." />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <style>
+    /* ════════════════ TOKENS ════════════════ */
+    :root {
+      --bg: #0D0D0D;
+      --surface: #1C1C1C;
+      --off: #0D0D0D;
+      --primary: #E5E7EB;
+      --secondary: #3B82F6;
+      --accent: #F97316;
+      --text: #E5E7EB;
+      --muted: #9CA3AF;
+      
+      --g50: #1C1C1C;
+      --g100: #262626;
+      --g200: #404040;
+      --g400: #A3A3A3;
+      --g600: #D4D4D4;
+      --g800: #F5F5F5;
+      
+      --b50: rgba(59, 130, 246, 0.08);
+      --b100: rgba(59, 130, 246, 0.15);
+      --b300: #3B82F6;
+      --b500: #3B82F6;
+      --b700: #2563EB;
+      
+      --accent1: #3B82F6;
+      --accent2: #F97316;
+      --accent3: #10B981;
+      
+      --border: rgba(229, 231, 235, 0.12);
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.7);
+      --display: 'Inter', sans-serif;
+      --sans: 'Inter', sans-serif;
+      --mono: 'Roboto Mono', monospace;
+      --r: 12px;
+      --glass: #1C1C1C;
+      --glass-border: rgba(229, 231, 235, 0.1);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+      overflow-x: clip;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(59, 130, 246, 0.08), transparent),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(249, 115, 22, 0.04), transparent);
+      pointer-events: none;
+    }
+
+    /* ════════════════ PAGE ROUTER ════════════════ */
+    .page {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .page.active {
+      display: block;
+    }
+
+    /* ════════════════ SHARED COMPONENTS ════════════════ */
+    .shield-svg {
+      display: inline-block;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="password"],
+    textarea,
+    select {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-family: var(--mono);
+      font-size: .84rem;
+      color: var(--primary);
+      background: #0D0D0D;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+      resize: none;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--secondary);
+      box-shadow: 0 0 0 3px var(--b50), 0 0 20px rgba(59, 130, 246, .2);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--g400);
+    }
+
+    label.lbl {
+      display: block;
+      font-family: var(--display);
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: .02em;
+      margin-bottom: 6px;
+    }
+
+    .hint {
+      margin-top: 5px;
+      font-family: var(--sans);
+      font-size: .75rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .hint code {
+      background: var(--g100);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1px 5px;
+      color: var(--primary);
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: .68rem;
+      padding: 3px 9px;
+      background: var(--b50);
+      border: 1px solid var(--b100);
+      border-radius: 40px;
+      color: var(--b300);
+      animation: popIn .15s ease;
+    }
+
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(.85);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .tag-preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 7px;
+    }
+
+    @keyframes rise {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* (Auth page removed) */
+
+    /* ════════════════ HOME PAGE ════════════════ */
+    #home {
+      background: transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #home::before {
+      content: '';
+      position: absolute;
+      top: -180px;
+      right: -180px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(0, 128, 128, .08) 0%, transparent 70%);
+      opacity: .6;
+      pointer-events: none;
+    }
+
+    #home::after {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      left: -100px;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(26, 43, 76, .05) 0%, transparent 70%);
+      opacity: .6;
+      pointer-events: none;
+    }
+
+    .home-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      box-sizing: border-box;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 60px;
+      border-bottom: 1px solid var(--glass-border);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+    }
+
+    .nav-brand-text {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+      line-height: 1;
+    }
+
+    .nav-brand-text span {
+      color: var(--secondary);
+    }
+
+    .nav-tag {
+      font-family: var(--mono);
+      font-size: .6rem;
+      color: var(--muted);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-user {
+      font-family: var(--mono);
+      font-size: .72rem;
+      color: var(--muted);
+      letter-spacing: .06em;
+    }
+
+    .nav-btn {
+      padding: 9px 22px;
+      background: var(--secondary);
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      font-family: var(--sans);
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 18px rgba(0, 128, 128, .2);
+      transition: all .25s;
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 128, 128, .3);
+    }
+
+    .nav-btn.ghost {
+      background: none;
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .nav-btn.ghost:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    .hero {
+      position: relative;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 240px 32px 70px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: .65rem;
+      font-weight: 500;
+      color: var(--secondary);
+      letter-spacing: .22em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      background: var(--b50);
+      border: 1px solid var(--b100);
+      border-radius: 40px;
+      padding: 5px 16px;
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 0 rgba(0, 128, 128, 0);
+      }
+
+      50% {
+        box-shadow: 0 0 20px rgba(0, 128, 128, .15);
+      }
+    }
+
+    .hero h1 {
+      font-family: var(--display);
+      font-size: clamp(2.4rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -.02em;
+      color: var(--primary);
+      max-width: 700px;
+      margin-bottom: 22px;
+    }
+
+    .hero h1 em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--secondary), var(--primary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.02rem;
+      font-weight: 400;
+      color: var(--muted);
+      max-width: 500px;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .btn-hero-primary {
+      padding: 13px 34px;
+      background: var(--secondary);
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      font-family: var(--sans);
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 24px rgba(0, 128, 128, .2);
+      transition: all .25s;
+    }
+
+    .btn-hero-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0, 128, 128, .3);
+    }
+
+    .btn-hero-ghost {
+      padding: 13px 34px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1.5px solid var(--border);
+      border-radius: 40px;
+      font-family: var(--sans);
+      font-size: .95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all .25s;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-hero-ghost:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+      transform: translateY(-2px);
+    }
+
+    .hero-graphic {
+      margin-top: 60px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .hero-graphic svg {
+      filter: drop-shadow(0 12px 32px rgba(0, 128, 128, .12));
+    }
+
+    .features {
+      position: relative;
+      z-index: 5;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid var(--glass-border);
+      border-bottom: 1px solid var(--glass-border);
+      background: var(--surface);
+    }
+
+    .feat {
+      padding: 40px 36px;
+      border-right: 1px solid var(--glass-border);
+      transition: background .3s;
+    }
+
+    .feat:last-child {
+      border-right: none;
+    }
+
+    .feat:hover {
+      background: var(--off);
+    }
+
+    .feat-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--b50);
+      border: 1px solid var(--b100);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 14px;
+      transition: transform .3s, box-shadow .3s;
+    }
+
+    .feat:hover .feat-icon {
+      transform: scale(1.1);
+      box-shadow: 0 0 16px rgba(0, 128, 128, .2);
+    }
+
+    .feat h3 {
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .feat p {
+      font-size: .84rem;
+      font-weight: 400;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    /* History section on home */
+    .history-section {
+      position: relative;
+      z-index: 5;
+      padding: 48px 60px;
+      scroll-margin-top: 80px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-family: var(--display);
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .btn-clear {
+      font-family: var(--mono);
+      font-size: .65rem;
+      color: var(--muted);
+      background: none;
+      border: none;
+      cursor: pointer;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      transition: color .15s;
+    }
+
+    .btn-clear:hover {
+      color: #e05555;
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .history-empty {
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 28px;
+      border: 1.5px dashed var(--border);
+      border-radius: 8px;
+    }
+
+    .hist-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 18px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-family: var(--mono);
+      font-size: .75rem;
+      cursor: pointer;
+      transition: all .25s;
+      box-shadow: var(--shadow);
+    }
+
+    .hist-item:hover {
+      border-color: var(--secondary);
+      background: var(--b50);
+      transform: translateY(-1px);
+    }
+
+    .hist-formula {
+      font-size: .8rem;
+      color: var(--primary);
+      font-weight: 500;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .hist-meta {
+      color: var(--muted);
+      font-size: .65rem;
+    }
+
+    .hist-badge {
+      background: var(--b50);
+      border: 1px solid var(--b100);
+      color: var(--secondary);
+      border-radius: 40px;
+      padding: 2px 8px;
+      font-size: .62rem;
+    }
+
+    .hist-rerun {
+      font-size: .65rem;
+      color: var(--secondary);
+      white-space: nowrap;
+    }
+
+    .home-footer {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      padding: 24px;
+      font-family: var(--mono);
+      font-size: .62rem;
+      color: var(--muted);
+      letter-spacing: .1em;
+    }
+
+    /* ════════════════ CALCULATOR PAGE ════════════════ */
+    #calc {
+      background: var(--bg);
+      min-height: 100vh;
+    }
+
+    #calc::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      background-image: radial-gradient(circle, rgba(0, 128, 128, .04) 1px, transparent 1px);
+      background-size: 26px 26px;
+      pointer-events: none;
+    }
+
+    .calc-nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--surface);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 40px;
+      box-shadow: var(--shadow);
+    }
+
+    .calc-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--display);
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .calc-nav-brand span {
+      color: var(--secondary);
+    }
+
+    .calc-nav-right {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-back {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 18px;
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 40px;
+      font-family: var(--sans);
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all .15s;
+    }
+
+    .btn-back:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    .calc-body {
+      position: relative;
+      z-index: 1;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 44px 20px 80px;
+    }
+
+    .calc-title {
+      font-family: var(--display);
+      font-size: 1.7rem;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .calc-title span {
+      color: var(--secondary);
+    }
+
+    .calc-sub {
+      font-size: .83rem;
+      color: var(--muted);
+      font-weight: 400;
+      margin-bottom: 32px;
+    }
+
+    /* step cards */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 24px 26px 22px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(12px);
+      animation: rise .38s ease forwards;
+    }
+
+    .card:nth-child(1) {
+      animation-delay: .04s;
+    }
+
+    .card:nth-child(2) {
+      animation-delay: .09s;
+    }
+
+    .card:nth-child(3) {
+      animation-delay: .14s;
+    }
+
+    .card:nth-child(4) {
+      animation-delay: .19s;
+    }
+
+    .card:nth-child(5) {
+      animation-delay: .24s;
+    }
+
+    .card:nth-child(6) {
+      animation-delay: .29s;
+    }
+
+    .card-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 16px;
+    }
+
+    .card-num {
+      width: 22px;
+      height: 22px;
+      background: var(--secondary);
+      color: #fff;
+      border-radius: 50%;
+      font-family: var(--mono);
+      font-size: .68rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .card-title-text {
+      font-family: var(--display);
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--primary);
+    }
+
+    .card-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* pill radio */
+    .pill-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill-group label {
+      flex: 1;
+      min-width: 180px;
+      cursor: pointer;
+    }
+
+    .pill-group input[type="radio"] {
+      display: none;
+    }
+
+    .pill {
+      display: block;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 11px 14px;
+      transition: all .25s;
+    }
+
+    .pill-name {
+      font-family: var(--display);
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--primary);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .pill-desc {
+      font-family: var(--sans);
+      font-size: .72rem;
+      font-weight: 400;
+      color: var(--muted);
+    }
+
+    .pill-group input:checked+.pill {
+      border-color: var(--secondary);
+      background: var(--b50);
+      box-shadow: 0 0 16px rgba(0, 128, 128, .12);
+    }
+
+    .pill-group input:checked+.pill .pill-name {
+      color: var(--secondary);
+    }
+
+    .pill-group label:hover .pill {
+      border-color: var(--secondary);
+    }
+
+    /* density */
+    .inp-suffix {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .inp-suffix input {
+      padding-right: 52px;
+    }
+
+    .sfx {
+      position: absolute;
+      right: 12px;
+      font-family: var(--mono);
+      font-size: .67rem;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 88px;
+      gap: 10px;
+      align-items: end;
+    }
+
+    .unit-label {
+      font-family: var(--mono);
+      font-size: .7rem;
+      color: var(--text);
+      background: var(--g100);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* multi textarea */
+    .multi-field textarea {
+      min-height: 44px;
+      line-height: 1.6;
+    }
+
+    /* ── isotope grid ── */
+    .isotope-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 8px;
+    }
+
+    .iso-check {
+      display: none;
+    }
+
+    .iso-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .25s;
+      font-family: var(--mono);
+      font-size: .75rem;
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .iso-label:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    .iso-check:checked+.iso-label {
+      border-color: var(--secondary);
+      background: var(--b50);
+      color: var(--secondary);
+      font-weight: 500;
+      box-shadow: 0 0 12px rgba(0, 128, 128, .1);
+    }
+
+    .iso-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background .18s;
+    }
+
+    .iso-check:checked+.iso-label .iso-dot {
+      background: var(--secondary);
+    }
+
+    /* ── parameter checkboxes ── */
+    .param-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 8px;
+    }
+
+    .param-check {
+      display: none;
+    }
+
+    .param-label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .25s;
+      font-family: var(--mono);
+      font-size: .73rem;
+      color: var(--text);
+      background: var(--surface);
+    }
+
+    .param-label:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    .param-check:checked+.param-label {
+      border-color: var(--secondary);
+      background: var(--b50);
+      color: var(--secondary);
+      box-shadow: 0 0 12px rgba(0, 128, 128, .08);
+    }
+
+    .param-icon {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--border);
+      flex-shrink: 0;
+      transition: background .18s;
+    }
+
+    .param-check:checked+.param-label .param-icon {
+      background: var(--secondary);
+    }
+
+    .param-name {
+      flex: 1;
+    }
+
+    .param-unit {
+      font-size: .6rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* select-all strip */
+    .sel-strip {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .btn-sel {
+      font-family: var(--mono);
+      font-size: .65rem;
+      padding: 4px 12px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: none;
+      cursor: pointer;
+      color: var(--muted);
+      transition: all .15s;
+      letter-spacing: .05em;
+    }
+
+    .btn-sel:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    /* actions */
+    .form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 24px;
+      opacity: 0;
+      animation: rise .38s .32s ease forwards;
+    }
+
+    .btn-ghost-act {
+      padding: 11px 22px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 40px;
+      font-family: var(--sans);
+      font-size: .82rem;
+      font-weight: 500;
+      color: var(--text);
+      cursor: pointer;
+      transition: all .15s;
+      box-shadow: var(--shadow);
+    }
+
+    .btn-ghost-act:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    .btn-calc {
+      padding: 11px 32px;
+      background: var(--secondary);
+      color: #fff;
+      border: none;
+      border-radius: 40px;
+      font-family: var(--sans);
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 18px rgba(0, 128, 128, .2);
+      transition: all .25s;
+    }
+
+    .btn-calc:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 128, 128, .3);
+    }
+
+    .btn-calc:active {
+      transform: translateY(0);
+    }
+
+    .btn-calc:disabled {
+      background: var(--g200);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-export-excel {
+      background: linear-gradient(135deg, #107c41, #1f9a55) !important;
+      box-shadow: 0 3px 18px rgba(16, 124, 65, .3) !important;
+    }
+
+    .btn-export-excel:hover {
+      box-shadow: 0 6px 24px rgba(16, 124, 65, .45) !important;
+    }
+
+    .btn-export-jpeg {
+      background: linear-gradient(135deg, #e11d48, #be123c) !important;
+      box-shadow: 0 3px 18px rgba(225, 29, 72, .3) !important;
+    }
+
+    .btn-export-jpeg:hover {
+      box-shadow: 0 6px 24px rgba(225, 29, 72, .45) !important;
+    }
+
+    .btn-export-xlsx {
+      background: linear-gradient(135deg, #0284c7, #0369a1) !important;
+      box-shadow: 0 3px 18px rgba(2, 132, 199, .3) !important;
+    }
+
+    .btn-export-xlsx:hover {
+      box-shadow: 0 6px 24px rgba(2, 132, 199, .45) !important;
+    }
+
+    /* status / output */
+    #status-panel {
+      display: none;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px;
+      margin-top: 16px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-top-color: var(--secondary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .status-msg {
+      font-family: var(--mono);
+      font-size: .78rem;
+      color: var(--primary);
+    }
+
+    .btn-download {
+      display: none;
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px;
+      background: var(--secondary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--sans);
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 18px rgba(0, 128, 128, .2);
+      transition: all .25s;
+      text-align: center;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 24px rgba(0, 128, 128, .3);
+    }
+
+    .btn-download svg {
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    /* ── param groups ── */
+    .param-group {
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .param-group-head {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 12px;
+      background: var(--g100);
+      font-family: var(--mono);
+      font-size: .67rem;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: .05em;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .param-group .param-grid {
+      padding: 10px 10px 6px;
+    }
+
+    /* ── Tabbed Parameter Interface ── */
+    .tabs-container {
+      display: flex;
+      background: var(--g100);
+      border: 1px solid var(--glass-border);
+      border-radius: 30px;
+      padding: 4px;
+      margin-bottom: 20px;
+      gap: 4px;
+      overflow-x: auto;
+    }
+
+    .tabs-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      border-radius: 26px;
+      color: var(--muted);
+      font-family: var(--sans);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .tab-btn:hover {
+      color: var(--primary);
+      background: rgba(0, 128, 128, 0.05);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--secondary);
+      box-shadow: 0 4px 15px rgba(0, 128, 128, 0.25);
+    }
+
+    .tab-btn svg {
+      width: 14px;
+      height: 14px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      transition: transform 0.3s ease;
+    }
+
+    .tab-btn:hover svg {
+      transform: scale(1.1);
+    }
+
+    .tab-content {
+      display: none;
+      animation: tabFadeIn 0.35s ease forwards;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes tabFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ── conditional card visibility ── */
+    .card-hidden {
+      overflow: hidden;
+      max-height: 0 !important;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+      margin-bottom: 0 !important;
+      opacity: 0;
+      border-width: 0 !important;
+      box-shadow: none !important;
+      transition: max-height .35s ease, opacity .25s ease, padding .3s ease,
+        margin .3s ease, border-width .3s ease;
+    }
+
+    .card {
+      max-height: 1200px;
+      transition: max-height .35s ease, opacity .25s ease, padding .3s ease,
+        margin .3s ease, border-width .3s ease;
+    }
+
+    .block-hidden {
+      overflow: hidden;
+      max-height: 0 !important;
+      opacity: 0;
+      margin: 0 !important;
+      transition: max-height .3s ease, opacity .2s ease, margin .3s ease;
+    }
+
+    #thickness-block,
+    #depth-block {
+      max-height: 400px;
+      transition: max-height .3s ease, opacity .2s ease, margin .3s ease;
+    }
+
+    /* ════════════════ SPLIT LAYOUT ════════════════ */
+    .calc-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    .calc-left,
+    .calc-right {
+      position: sticky;
+      top: 76px;
+      max-height: calc(100vh - 96px);
+      overflow-y: auto;
+      min-width: 0;
+      scrollbar-gutter: stable;
+    }
+
+    .calc-right {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .calc-right > .card {
+      flex: 1 1 auto;
+      overflow-y: visible;
+      max-height: none;
+    }
+
+    .calc-left::-webkit-scrollbar,
+    .calc-right::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .calc-left::-webkit-scrollbar-track,
+    .calc-right::-webkit-scrollbar-track {
+      background: var(--g100);
+      border-radius: 4px;
+    }
+
+    .calc-left::-webkit-scrollbar-thumb,
+    .calc-right::-webkit-scrollbar-thumb {
+      background: rgba(0, 128, 128, 0.3);
+      border-radius: 4px;
+    }
+
+    .calc-left::-webkit-scrollbar-thumb:hover,
+    .calc-right::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 128, 128, 0.6);
+    }
+
+    .calc-right .form-actions {
+      flex-shrink: 0;
+    }
+
+    @media(max-width:960px) {
+      .calc-split {
+        grid-template-columns: 1fr;
+      }
+
+      .calc-left,
+      .calc-right {
+        position: static;
+        max-height: none;
+        overflow-y: visible;
+      }
+
+      .calc-right > .card {
+        max-height: none;
+        overflow-y: visible;
+      }
+    }
+
+    @media(max-width:720px) {
+      .home-nav {
+        padding: 18px 20px;
+      }
+
+      .history-section {
+        padding: 36px 20px;
+      }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .feat {
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+      }
+    }
+
+    @media(max-width:520px) {
+      .calc-nav {
+        padding: 12px 16px;
+      }
+
+      .calc-body {
+        padding: 28px 14px 60px;
+      }
+
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .auth-box {
+        padding: 32px 24px;
+      }
+    }
+
+    /* ── compositions list container ── */
+    #compositions-container {
+      margin-bottom: 10px;
+    }
+
+    /* ── Composition Tabs ── */
+    .comp-tabs-bar {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .comp-tabs-bar::-webkit-scrollbar {
+      height: 3px;
+    }
+    .comp-tabs-bar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .comp-tabs-bar::-webkit-scrollbar-thumb {
+      background: rgba(0, 128, 128, 0.2);
+      border-radius: 4px;
+    }
+
+    .comp-tab {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 14px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 0.74rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s;
+      white-space: nowrap;
+    }
+
+    .comp-tab:hover {
+      border-color: var(--secondary);
+      color: var(--secondary);
+    }
+
+    .comp-tab.active {
+      border-color: var(--secondary);
+      background: var(--b50);
+      color: var(--secondary);
+      box-shadow: 0 0 12px rgba(0, 128, 128, 0.1);
+      font-weight: 700;
+    }
+
+    .comp-tab.drag-over {
+      border-color: var(--secondary);
+      background: var(--b100);
+      transform: scale(1.05);
+    }
+
+    .comp-tab-close {
+      font-size: 1.3rem;
+      line-height: 0.8;
+      opacity: 0.5;
+      transition: all 0.15s;
+      cursor: pointer;
+      margin-left: 5px;
+      display: inline-block;
+      vertical-align: middle;
+    }
+
+    .comp-tab-close:hover {
+      opacity: 1;
+      color: #ef4444;
+    }
+
+    .comp-tab-add {
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--secondary);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 1.05rem;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.25s;
+      box-shadow: 0 2px 8px rgba(0, 128, 128, 0.25);
+    }
+
+    .comp-tab-add:hover {
+      transform: scale(1.1);
+      box-shadow: 0 4px 14px rgba(0, 128, 128, 0.4);
+    }
+
+    .comp-tab-panel {
+      display: none;
+    }
+
+    .comp-tab-panel.active {
+      display: block;
+      animation: tabFadeIn 0.25s ease forwards;
+    }
+
+    .comp-field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .comp-field-grid .comp-formula-col {
+      grid-column: 1 / -1;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Home page is shown directly (no auth) -->
+
+
+  <!-- ████████████████████████████████
+     HOME PAGE
+████████████████████████████████ -->
+  <div id="home" class="page active">
+
+    <nav class="home-nav">
+      <div class="nav-brand">
+        <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
+          <path d="M16 2L28 7.5L28 18C28 25 16 30 16 30C16 30 4 25 4 18L4 7.5Z" fill="rgba(99,102,241,.15)"
+            stroke="#818cf8" stroke-width="1.4" />
+          <path d="M16 7L23 10.5L23 17C23 21.5 16 24 16 24C16 24 9 21.5 9 17L9 10.5Z" fill="rgba(99,102,241,.25)"
+            stroke="#6366f1" stroke-width="1" />
+          <circle cx="16" cy="16.5" r="3.2" fill="#6366f1" />
+          <path d="M14.2 16.5L15.4 17.7L18.2 14.5" stroke="white" stroke-width="1.2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        <div>
+          <div class="nav-brand-text">ProMatX <span></span></div>
+          <div class="nav-tag">Properties of Material eXplorer</div>
+        </div>
+      </div>
+      <div class="nav-right">
+        <span class="nav-user" id="nav-user-display" style="display:none; font-weight:600; color:var(--b300);"></span>
+        <button class="nav-btn ghost" id="nav-login-btn" onclick="showAuthModal()">Sign In</button>
+        <button class="nav-btn ghost" id="nav-logout-btn" style="display:none;" onclick="logout()">Logout</button>
+        <button class="nav-btn" onclick="goTo('calc')">Open Calculator →</button>
+      </div>
+    </nav>
+
+    <section class="hero">
+      <div class="hero-eyebrow">Properties of Material eXplorer · v3.0</div>
+      <h1>ProMatX</h1>
+      <p class="hero-sub">Calculate attenuation coefficients and shielding parameters for any material composition —
+        standard, energy-grid, or isotope-specific.</p>
+      <div class="hero-cta">
+        <button class="btn-hero-primary" onclick="goTo('calc')">Launch Calculator →</button>
+        <button class="btn-hero-ghost"
+          onclick="document.querySelector('.history-section').scrollIntoView({behavior:'smooth'})">View History
+          ↓</button>
+      </div>
+      <div class="hero-graphic">
+        <svg width="320" height="200" viewBox="0 0 340 220" fill="none">
+          <ellipse cx="170" cy="180" rx="130" ry="24" fill="rgba(99,102,241,.15)" opacity=".5" />
+          <path d="M170 14L284 60L284 130C284 178 170 206 170 206C170 206 56 178 56 130L56 60Z"
+            fill="rgba(99,102,241,.08)" stroke="#818cf8" stroke-width="2" />
+          <path d="M170 36L256 72L256 126C256 162 170 184 170 184C170 184 84 162 84 126L84 72Z" fill="rgba(30,41,59,.6)"
+            stroke="#6366f1" stroke-width="1.5" opacity=".8" />
+          <circle cx="170" cy="118" r="36" fill="rgba(99,102,241,.1)" stroke="#6366f1" stroke-width="1.2" />
+          <circle cx="170" cy="118" r="20" fill="rgba(99,102,241,.2)" stroke="#4f46e5" stroke-width="1" />
+          <circle cx="170" cy="118" r="7" fill="#6366f1" />
+          <line x1="170" y1="78" x2="170" y2="68" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="170" y1="158" x2="170" y2="168" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="130" y1="118" x2="120" y2="118" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="210" y1="118" x2="220" y2="118" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="143" y1="91" x2="136" y2="84" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="197" y1="145" x2="204" y2="152" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="197" y1="91" x2="204" y2="84" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <line x1="143" y1="145" x2="136" y2="152" stroke="#818cf8" stroke-width="1.5" stroke-linecap="round" />
+          <text x="170" y="200" text-anchor="middle" font-family="'Fira Code',monospace" font-size="8" fill="#818cf8"
+            letter-spacing="2" opacity=".7">RADIATION SHIELDING CALCULATOR</text>
+        </svg>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="feat">
+        <div class="feat-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <path d="M10 2L17 5.5L17 11C17 15 10 18 10 18C10 18 3 15 3 11L3 5.5Z" stroke="#818cf8" stroke-width="1.4"
+              fill="rgba(99,102,241,.2)" />
+          </svg>
+        </div>
+        <h3>Any Composition</h3>
+        <p>Enter complex chemical formulae on a mole basis — from pure elements to multi-compound mixtures like
+          <strong>0.1B₂O₃+0.1PbO</strong>.
+        </p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="7" stroke="#818cf8" stroke-width="1.4" fill="rgba(99,102,241,.2)" />
+            <circle cx="10" cy="10" r="3" fill="#6366f1" />
+            <path d="M10 3v-2M10 19v-2M3 10H1M19 10h-2" stroke="#818cf8" stroke-width="1.2" stroke-linecap="round" />
+          </svg>
+        </div>
+        <h3>Isotope Sources</h3>
+        <p>Select from 9 radioactive isotopes — Am-241, Cs-137, Co-60, Eu-152, Ba-133, Na-22, I-131, Cd-109, Fe-55 — for
+          source-specific analysis.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+            <rect x="2" y="10" width="3" height="8" rx="1" fill="rgba(99,102,241,.2)" stroke="#818cf8"
+              stroke-width="1.2" />
+            <rect x="7" y="6" width="3" height="12" rx="1" fill="rgba(99,102,241,.2)" stroke="#818cf8"
+              stroke-width="1.2" />
+            <rect x="12" y="3" width="3" height="15" rx="1" fill="rgba(99,102,241,.2)" stroke="#818cf8"
+              stroke-width="1.2" />
+          </svg>
+        </div>
+        <h3>Batch + History</h3>
+        <p>Input multiple thickness and depth values space-separated. Every calculation is saved to your profile for
+          one-click reuse.</p>
+      </div>
+    </section>
+
+    <!-- History -->
+    <div class="history-section">
+      <div class="section-head">
+        <div class="section-title">Your Calculation History</div>
+        <button class="btn-clear" onclick="clearHistory()">Clear All</button>
+      </div>
+      <div class="history-list" id="history-list">
+        <div class="history-empty" id="history-empty">No calculations yet. Run your first one above!</div>
+      </div>
+    </div>
+
+    <footer class="home-footer">SHIELDING MADE EASY &nbsp;·&nbsp; RADIATION ATTENUATION CALCULATOR &nbsp;·&nbsp; V3.0
+    </footer>
+  </div>
+
+
+  <!-- ████████████████████████████████
+     CALCULATOR PAGE
+████████████████████████████████ -->
+  <div id="calc" class="page">
+    <nav class="calc-nav">
+      <div class="calc-nav-brand">
+        <svg width="24" height="24" viewBox="0 0 32 32" fill="none">
+          <path d="M16 2L28 7.5L28 18C28 25 16 30 16 30C16 30 4 25 4 18L4 7.5Z" fill="rgba(99,102,241,.15)"
+            stroke="#818cf8" stroke-width="1.4" />
+          <circle cx="16" cy="16.5" r="4.5" fill="#6366f1" />
+          <path d="M14 16.5L15.4 18L18.5 14.5" stroke="white" stroke-width="1.2" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </svg>
+        ProMatX <span></span>
+      </div>
+      <div class="calc-nav-right">
+        <button class="btn-back" onclick="goTo('home')">← Home</button>
+      </div>
+    </nav>
+
+    <div class="calc-body">
+      <h2 class="calc-title">Shielding <span>Parameter Evaluator</span></h2>
+      <p class="calc-sub">Complete all sections, then choose your output parameters.</p>
+
+      <form id="shield-form" autocomplete="off">
+
+        <div class="calc-split">
+        <div class="calc-left">
+
+        <!-- STEP 1: Composition -->
+        <div class="card">
+          <div class="card-label">
+            <div class="card-num">1</div>
+            <span class="card-title-text">Input Parameters</span>
+          </div>
+          <div class="comp-tabs-bar" id="comp-tabs-bar">
+            <!-- Tab buttons inserted by JS -->
+            <button type="button" class="comp-tab-add" onclick="addCompositionRow()" title="Add composition">+</button>
+          </div>
+          <div id="compositions-container">
+            <!-- Tab panels inserted by JS -->
+          </div>
+          <p class="hint" style="margin-top: 10px; margin-bottom: 16px;">
+            Prefix each compound with its mole fraction, separate with <code>+</code>. &nbsp;
+            e.g. <code>Pb</code> · <code>H2O</code> · <code>0.1B2O3+0.1PbO</code> · <code>0.5Fe2O3+0.5SiO2</code>
+          </p>
+          <div class="field" style="margin-bottom: 0;">
+            <label class="lbl">Material name/code <span
+                style="text-transform:none;letter-spacing:0;font-size:.62rem;font-weight:300">(optional)</span></label>
+            <input type="text" id="mat-name" name="material_name" placeholder="e.g.  Borosilicate Lead Glass" />
+          </div>
+        </div>
+
+        <!-- STEP 2: Energy Mode -->
+        <div class="card">
+          <div class="card-label">
+            <div class="card-num">2</div>
+            <span class="card-title-text">Energy Mode</span>
+          </div>
+          <div class="pill-group">
+            <label>
+              <input type="checkbox" name="energy_mode" class="energy-mode-check" value="0" checked />
+              <span class="pill">
+                <span class="pill-name">80 Standard Energies</span>
+                <span class="pill-desc">Full 80-energy MAC evaluation</span>
+              </span>
+            </label>
+            <label>
+              <input type="checkbox" name="energy_mode" class="energy-mode-check" value="1" />
+              <span class="pill">
+                <span class="pill-name">25 Selected Energies</span>
+                <span class="pill-desc">Standard 25 selected energies (with G-P parameters)</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <!-- STEP 3: Isotope Sources -->
+        <div class="card card-isotopes">
+          <div class="card-label">
+            <div class="card-num">3</div>
+            <span class="card-title-text">Isotope Sources <span
+                style="font-size:.68rem;font-weight:300;text-transform:none;letter-spacing:0;">(select one or
+                more)</span></span>
+          </div>
+          <p style="font-family:var(--mono);font-size:.68rem;color:var(--g400);margin-bottom:12px;">
+            Select radioactive sources to evaluate material attenuation at isotope-specific gamma energies. Leave all
+            unselected to skip.
+          </p>
+          <div class="isotope-grid">
+            <!-- each isotope: value must match exactly what the C++ expects -->
+            <div><input class="iso-check" type="checkbox" id="iso-am241" value="Am (241)"><label class="iso-label"
+                for="iso-am241"><span class="iso-dot"></span>Am&#8209;241</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-cs137" value="Cs (137)"><label class="iso-label"
+                for="iso-cs137"><span class="iso-dot"></span>Cs&#8209;137</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-co60" value="Co (60)"><label class="iso-label"
+                for="iso-co60"><span class="iso-dot"></span>Co&#8209;60</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-eu152" value="Eu (152)"><label class="iso-label"
+                for="iso-eu152"><span class="iso-dot"></span>Eu&#8209;152</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-ba133" value="Ba (133)"><label class="iso-label"
+                for="iso-ba133"><span class="iso-dot"></span>Ba&#8209;133</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-na22" value="Na (22)"><label class="iso-label"
+                for="iso-na22"><span class="iso-dot"></span>Na&#8209;22</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-i131" value="I (131)"><label class="iso-label"
+                for="iso-i131"><span class="iso-dot"></span>I&#8209;131</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-cd109" value="Cd (109)"><label class="iso-label"
+                for="iso-cd109"><span class="iso-dot"></span>Cd&#8209;109</label></div>
+            <div><input class="iso-check" type="checkbox" id="iso-fe55" value="Fe (55)"><label class="iso-label"
+                for="iso-fe55"><span class="iso-dot"></span>Fe&#8209;55</label></div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Density -->
+        <div class="card" id="card-density">
+          <div class="card-label">
+            <div class="card-num">3</div>
+            <span class="card-title-text">Material Density</span>
+          </div>
+          <div class="card-needed-note" id="density-note"
+            style="font-family:var(--mono);font-size:.67rem;color:var(--b500);background:var(--b50);border:1px solid var(--b100);border-radius:5px;padding:6px 10px;margin-bottom:12px;display:none;">
+            ⓘ Required for: <span id="density-needed-by"></span>
+          </div>
+          <div class="field" style="max-width:280px;margin-bottom:0;">
+            <label class="lbl">Density</label>
+            <div class="two-col">
+              <div class="inp-suffix">
+                <input type="number" id="density" name="density" placeholder="e.g.  11.34" step="any" min="0" />
+                <span class="sfx">g/cm³</span>
+              </div>
+              <div class="unit-label">g / cm³</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Thickness & Depths -->
+        <div class="card" id="card-samples">
+          <div class="card-label">
+            <div class="card-num">4</div>
+            <span class="card-title-text">Thickness &amp; Penetration Depths</span>
+          </div>
+          <div id="thickness-block">
+            <div class="card-needed-note" id="thickness-note"
+              style="font-family:var(--mono);font-size:.67rem;color:var(--b500);background:var(--b50);border:1px solid var(--b100);border-radius:5px;padding:6px 10px;margin-bottom:12px;display:none;">
+              ⓘ Thickness required for: <span id="thickness-needed-by"></span>
+            </div>
+            <div class="field multi-field">
+              <label class="lbl">Thickness values (cm)</label>
+              <textarea id="thicknesses" name="thicknesses" rows="2" placeholder="e.g.  1  2  3  4  10"></textarea>
+              <div class="tag-preview" id="thick-preview"></div>
+              <p class="hint">Space-separated values. Each = one sample thickness in <code>cm</code>.</p>
+            </div>
+          </div>
+          <div id="depth-block">
+            <div class="card-needed-note" id="depth-note"
+              style="font-family:var(--mono);font-size:.67rem;color:var(--b500);background:var(--b50);border:1px solid var(--b100);border-radius:5px;padding:6px 10px;margin-bottom:12px;display:none;">
+              ⓘ MFP Depths required for: <span id="depth-needed-by"></span>
+            </div>
+            <div class="field multi-field" style="margin-bottom:0;">
+              <label class="lbl">Depth values (MFP)</label>
+              <textarea id="depths" name="depths" rows="2" placeholder="e.g.  1  2  5  10  20  40"></textarea>
+              <div class="tag-preview" id="depth-preview"></div>
+              <p class="hint">Space-separated mean-free-path values for build-up factor calculation.</p>
+            </div>
+          </div>
+        </div>
+
+        </div><!-- /calc-left -->
+        <div class="calc-right">
+
+        <!-- STEP 6: Output Parameters -->
+        <div class="card">
+          <div class="card-label">
+            <div class="card-num">6</div>
+            <span class="card-title-text">Output Parameters — Choose What to Include in Excel</span>
+          </div>
+          <p style="font-family:var(--mono);font-size:.68rem;color:var(--g400);margin-bottom:14px;">
+            Fields shown above (density, thickness, MFP depths) appear automatically based on what you select here.
+          </p>
+
+          <!-- Dynamic Segmented Tab Bar -->
+          <div class="tabs-container">
+            <button type="button" class="tab-btn active" data-tab="gamma">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+              </svg>
+              Gamma-Ray Shielding
+            </button>
+            <button type="button" class="tab-btn" data-tab="physical">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+              Physical
+            </button>
+            <button type="button" class="tab-btn" data-tab="mechanical">
+              <svg viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <line x1="9" y1="3" x2="9" y2="21" />
+              </svg>
+              Mechanical
+            </button>
+            <button type="button" class="tab-btn" data-tab="optical">
+              <svg viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M8 12h8" />
+              </svg>
+              Optical
+            </button>
+          </div>
+
+          <div class="sel-strip">
+            <button type="button" class="btn-sel" onclick="selectAllParams(true)">Select All</button>
+            <button type="button" class="btn-sel" onclick="selectAllParams(false)">Clear All</button>
+          </div>
+
+          <!-- TAB CONTENT 1: Gamma-Ray Shielding -->
+          <div class="tab-content active" id="tab-gamma">
+            <!-- Group A: Composition only -->
+            <div class="param-group">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="5" stroke="#1a6bc4" stroke-width="1.2" />
+                  <path d="M6 4v4M4 6h4" stroke="#1a6bc4" stroke-width="1.2" stroke-linecap="round" />
+                </svg>
+                Composition only &mdash; no extra inputs needed
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-mole" value="mole"><label class="param-label"
+                    for="p-mole"><span class="param-icon"></span><span class="param-name">Mole Fractions</span><span
+                      class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-mac" value="mac" checked><label
+                    class="param-label" for="p-mac"><span class="param-icon"></span><span
+                      class="param-name">MAC</span><span class="param-unit">cm²/g</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-zeff" value="zeff" checked><label
+                    class="param-label" for="p-zeff"><span class="param-icon"></span><span
+                      class="param-name">Z<sub>eff</sub></span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-ne" value="ne" checked><label class="param-label"
+                    for="p-ne"><span class="param-icon"></span><span class="param-name">N<sub>e</sub> &nbsp;<span
+                        style="font-weight:300;font-size:.6rem;">Electron Density</span></span><span
+                      class="param-unit">e⁻/g</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-zeq" value="zeq" checked><label
+                    class="param-label" for="p-zeq"><span class="param-icon"></span><span
+                      class="param-name">Z<sub>eq</sub></span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-gp" value="gp" checked><label class="param-label"
+                    for="p-gp"><span class="param-icon"></span><span class="param-name">G-P Parameters <span
+                        style="font-weight:300;font-size:.6rem;">EBF &amp; EABF</span></span><span
+                      class="param-unit">—</span></label></div>
+              </div>
+            </div>
+
+            <!-- Group B: Needs density -->
+            <div class="param-group">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="5" stroke="#e08030" stroke-width="1.2" />
+                  <path d="M6 3.5v3M6 8v.5" stroke="#e08030" stroke-width="1.4" stroke-linecap="round" />
+                </svg>
+                <span style="color:#b05800;">Requires Density (ρ)</span>
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-lac" value="lac" checked><label
+                    class="param-label" for="p-lac"><span class="param-icon"></span><span class="param-name">LAC
+                      &nbsp;<span style="font-weight:300;font-size:.6rem;">(μ)</span></span><span
+                      class="param-unit">cm⁻¹</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-mfp" value="mfp" checked><label
+                    class="param-label" for="p-mfp"><span class="param-icon"></span><span
+                      class="param-name">MFP</span><span class="param-unit">cm</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-hvl" value="hvl" checked><label
+                    class="param-label" for="p-hvl"><span class="param-icon"></span><span
+                      class="param-name">HVL</span><span class="param-unit">cm</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-tvl" value="tvl" checked><label
+                    class="param-label" for="p-tvl"><span class="param-icon"></span><span
+                      class="param-name">TVL</span><span class="param-unit">cm</span></label></div>
+              </div>
+            </div>
+
+            <!-- Group C: Needs density + thickness -->
+            <div class="param-group">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="5" stroke="#c03030" stroke-width="1.2" />
+                  <path d="M6 3.5v3M6 8v.5" stroke="#c03030" stroke-width="1.4" stroke-linecap="round" />
+                </svg>
+                <span style="color:#a02020;">Requires Density (ρ) + Thickness (t)</span>
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-tf" value="tf"><label class="param-label"
+                    for="p-tf"><span class="param-icon"></span><span class="param-name">Transmission Factor</span><span
+                      class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-rpe" value="rpe"><label class="param-label"
+                    for="p-rpe"><span class="param-icon"></span><span class="param-name">RPE</span><span
+                      class="param-unit">%</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-leq" value="leq"><label class="param-label"
+                    for="p-leq"><span class="param-icon"></span><span class="param-name">L<sub>eq</sub></span><span
+                      class="param-unit">cm</span></label></div>
+              </div>
+            </div>
+
+            <!-- Group D: Needs MFP values -->
+            <div class="param-group" style="margin-bottom:0;">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                  <circle cx="6" cy="6" r="5" stroke="#6040c0" stroke-width="1.2" />
+                  <path d="M6 3.5v3M6 8v.5" stroke="#6040c0" stroke-width="1.4" stroke-linecap="round" />
+                </svg>
+                <span style="color:#4020a0;">Requires MFP / x values</span>
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-ebf" value="ebf"><label class="param-label"
+                    for="p-ebf"><span class="param-icon"></span><span class="param-name">EBF <span
+                        style="font-weight:300;font-size:.6rem;">per MFP</span></span><span
+                      class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-eabf" value="eabf"><label class="param-label"
+                    for="p-eabf"><span class="param-icon"></span><span class="param-name">EABF <span
+                        style="font-weight:300;font-size:.6rem;">per MFP</span></span><span
+                      class="param-unit">—</span></label></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 2: Physical Properties -->
+          <div class="tab-content" id="tab-physical">
+            <!-- Basic Physical Parameters -->
+            <div class="param-group">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                Basic Physical Properties &mdash; Requires Density
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-molar-mass" value="molar_mass"><label
+                    class="param-label" for="p-molar-mass"><span class="param-icon"></span><span class="param-name">Molar
+                      Mass</span><span class="param-unit">g/mol</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-molar-vol" value="molar_vol"><label
+                    class="param-label" for="p-molar-vol"><span class="param-icon"></span><span class="param-name">Molar
+                      Volume</span><span class="param-unit">cm³/mol</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-dB_B" value="p-dB_B"><label
+                    class="param-label" for="p-dB_B"><span class="param-icon"></span><span class="param-name">Avg. Distance between boron atoms</span><span class="param-unit">10⁻⁸ cm</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-opd" value="opd"><label class="param-label"
+                    for="p-opd"><span class="param-icon"></span><span class="param-name">Oxygen Packing
+                      Density</span><span class="param-unit">g-atom/L</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-o-molar-vol" value="o_molar_vol"><label
+                    class="param-label" for="p-o-molar-vol"><span class="param-icon"></span><span
+                      class="param-name">Oxygen Molar Vol.</span><span class="param-unit">cm³/mol</span></label></div>
+              </div>
+            </div>
+
+            <!-- Inter-atomic and Ionic Parameters -->
+            <div class="param-group" style="margin-bottom:0;">
+              <div class="param-group-head" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                <span style="display: flex; align-items: center; gap: 6px;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                  Inter-atomic &amp; Ionic Structural State
+                  <span style="font-size:0.6rem;color:#a78bfa;font-style:italic;margin-left:4px;">(set Dopant per composition row)</span>
+                </span>
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-ion-conc" value="ion-conc"><label
+                    class="param-label" for="p-ion-conc"><span class="param-icon"></span><span
+                      class="param-name">Ion Concentration</span><span class="param-unit">10²¹ ions/cm³</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-inter-ionic-dist" value="inter_ionic_dist"><label
+                    class="param-label" for="p-inter-ionic-dist"><span class="param-icon"></span><span
+                      class="param-name">Inter-ionic Distance</span><span class="param-unit">10⁻⁸ cm</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-polaron-radius" value="polaron_radius"><label
+                    class="param-label" for="p-polaron-radius"><span class="param-icon"></span><span
+                      class="param-name">Polaron Radius</span><span class="param-unit">10⁻⁸ cm</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-field-strength" value="field_strength"><label
+                    class="param-label" for="p-field-strength"><span class="param-icon"></span><span
+                      class="param-name">Field Strength</span><span class="param-unit">10¹⁵ cm⁻²</span></label></div>
+              </div>
+            </div>
+
+            <!-- Density output checkbox -->
+            <div class="param-group" style="margin-bottom:0;">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 3h18v18H3z"/><line x1="3" y1="9" x2="21" y2="9"/>
+                </svg>
+                Input Property
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-density-out" value="density_output"><label
+                    class="param-label" for="p-density-out"><span class="param-icon"></span><span
+                      class="param-name">Density</span><span class="param-unit">g/cm³</span></label></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB CONTENT 3: Mechanical Properties -->
+          <div class="tab-content" id="tab-mechanical">
+            <div class="param-group" style="margin-bottom:0;">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <line x1="9" y1="3" x2="9" y2="21" />
+                </svg>
+                Mechanical Properties (Makishima-Mackenzie Model) &mdash; Requires Density
+              </div>
+              <div class="param-grid">
+                                <div><input class="param-check" type="checkbox" id="p-packing" value="packing_density"><label
+                    class="param-label" for="p-packing"><span class="param-icon"></span><span class="param-name">Packing
+                      Density (V<sub>t</sub>)</span><span class="param-unit">cm^3/mol</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-diss-energy" value="dissociation_energy"><label
+                    class="param-label" for="p-diss-energy"><span class="param-icon"></span><span
+                      class="param-name">Dissociation Energy</span><span class="param-unit">kJ/cm³</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-young" value="youngs_modulus"><label
+                    class="param-label" for="p-young"><span class="param-icon"></span><span class="param-name">Young's
+                      Modulus</span><span class="param-unit">GPa</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-bulk" value="bulk_modulus"><label
+                    class="param-label" for="p-bulk"><span class="param-icon"></span><span class="param-name">Bulk
+                      Modulus</span><span class="param-unit">GPa</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-shear" value="shear_modulus"><label
+                    class="param-label" for="p-shear"><span class="param-icon"></span><span class="param-name">Shear
+                      Modulus</span><span class="param-unit">GPa</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-long" value="longitudinal_modulus"><label
+                    class="param-label" for="p-long"><span class="param-icon"></span><span
+                      class="param-name">Longitudinal Mod.</span><span class="param-unit">GPa</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-poisson" value="poissons_ratio"><label
+                    class="param-label" for="p-poisson"><span class="param-icon"></span><span
+                      class="param-name">Poisson's Ratio</span><span class="param-unit">—</span></label></div>
+                                      <div><input class="param-check" type="checkbox" id="p-fractalbondconnectivity" value="fractalbondconnectivity"><label
+                    class="param-label" for="p-fractalbondconnectivity"><span class="param-icon"></span><span
+                      class="param-name">fractal bond connectivity</span><span class="param-unit">-</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-hardness" value="hardness"><label
+                    class="param-label" for="p-hardness"><span class="param-icon"></span><span
+                      class="param-name">Hardness</span><span class="param-unit">GPa</span></label></div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-content" id="tab-optical">
+            <!-- Bandgap Energy output checkbox -->
+            <div class="param-group">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                Input Property
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-bandgap-out" value="bandgap_output"><label
+                    class="param-label" for="p-bandgap-out"><span class="param-icon"></span><span
+                      class="param-name">Bandgap Energy</span><span class="param-unit">eV</span></label></div>
+              </div>
+            </div>
+            <div class="param-group" style="margin-bottom:0;">
+              <div class="param-group-head">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M8 12h8" />
+                </svg>
+                Optical Properties &mdash; Requires Band Gap (E<sub>g</sub>) (and Density where noted)
+              </div>
+              <div class="param-grid">
+                <div><input class="param-check" type="checkbox" id="p-ref-index" value="refractive_index"><label
+                    class="param-label" for="p-ref-index"><span class="param-icon"></span><span
+                      class="param-name">Refractive Index (n)</span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-dielectric" value="dielectric_constant"><label
+                    class="param-label" for="p-dielectric"><span class="param-icon"></span><span
+                      class="param-name">Dielectric Constant (ε)</span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-opt-dielectric" value="opt_dielectric_constant"><label
+                    class="param-label" for="p-opt-dielectric"><span class="param-icon"></span><span
+                      class="param-name">Opt. Dielectric Const. (ε<sub>∞</sub>)</span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-refl-loss" value="reflection_loss"><label
+                    class="param-label" for="p-refl-loss"><span class="param-icon"></span><span
+                      class="param-name">Reflection Loss (RL)</span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-molar-ref" value="molar_refractivity"><label
+                    class="param-label" for="p-molar-ref"><span class="param-icon"></span><span class="param-name">Molar
+                      Refractivity (R<sub>m</sub>) <span style="font-size:0.6rem;color:#e08030;">(ρ)</span></span><span class="param-unit">cm³/mol</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-metallization" value="metallization"><label
+                    class="param-label" for="p-metallization"><span class="param-icon"></span><span
+                      class="param-name">Metallization Criterion <span style="font-size:0.6rem;color:#e08030;">(ρ)</span></span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-molar-polar" value="molar_polarizability"><label
+                    class="param-label" for="p-molar-polar"><span class="param-icon"></span><span
+                      class="param-name">Molar Polarizability (α<sub>m</sub>) <span style="font-size:0.6rem;color:#e08030;">(ρ)</span></span><span class="param-unit">10⁻²⁴ cm³</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-electronic-polar" value="electronic_polarizability"><label
+                    class="param-label" for="p-electronic-polar"><span class="param-icon"></span><span
+                      class="param-name">Electronic Polar. (α<sub>e</sub>) <span style="font-size:0.6rem;color:#e08030;">(ρ)</span></span><span class="param-unit">10⁻²⁴ cm³</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-opt-trans" value="optical_transmission"><label
+                    class="param-label" for="p-opt-trans"><span class="param-icon"></span><span
+                      class="param-name">Transmission Coeff. (T)</span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-opt-electroneg" value="opt_electronegativity"><label
+                    class="param-label" for="p-opt-electroneg"><span class="param-icon"></span><span
+                      class="param-name">Opt. Electronegativity (χ*)</span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-linear-suscept" value="linear_susceptibility"><label
+                    class="param-label" for="p-linear-suscept"><span class="param-icon"></span><span
+                      class="param-name">Linear Susceptibility (χ⁽¹⁾)</span><span class="param-unit">—</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-nonlinear-suscept" value="nonlinear_susceptibility"><label
+                    class="param-label" for="p-nonlinear-suscept"><span class="param-icon"></span><span
+                      class="param-name">Non-linear Suscept. (χ⁽³⁾)</span><span class="param-unit">10⁻¹⁶ esu</span></label></div>
+                <div><input class="param-check" type="checkbox" id="p-nonlinear-ref-index" value="nonlinear_refractive_index"><label
+                    class="param-label" for="p-nonlinear-ref-index"><span class="param-icon"></span><span
+                      class="param-name">Non-linear Ref. Index (n₂)</span><span class="param-unit">10⁻¹⁵ esu</span></label></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions"
+          style="display: flex; gap: 12px; align-items: center; justify-content: flex-end; flex-wrap: wrap;">
+          <button type="button" class="btn-ghost-act" id="btn-reset" style="margin-right: auto;">Reset</button>
+
+          <button type="submit" name="format" value="excel" class="btn-calc btn-export-excel">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"
+              style="vertical-align: middle; margin-right: 4px; display: inline-block;">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            Excel (.xls)
+          </button>
+
+          <button type="submit" name="format" value="plots" class="btn-calc btn-export-jpeg">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"
+              style="vertical-align: middle; margin-right: 4px; display: inline-block;">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+            Graph (.jpeg)
+          </button>
+
+          <button type="submit" name="format" value="xlsx" class="btn-calc btn-export-xlsx">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" stroke-linejoin="round"
+              style="vertical-align: middle; margin-right: 4px; display: inline-block;">
+              <line x1="18" y1="20" x2="18" y2="10" />
+              <line x1="12" y1="20" x2="12" y2="4" />
+              <line x1="6" y1="20" x2="6" y2="14" />
+            </svg>
+            Graph (.xlsx)
+          </button>
+        </div>
+
+        </div><!-- /calc-right -->
+        </div><!-- /calc-split -->
+      </form>
+
+      <!-- Status panel -->
+      <div id="status-panel">
+        <div class="status-row">
+          <div class="spinner" id="calc-spinner"></div>
+          <div class="status-msg" id="calc-status-msg">Sending to server…</div>
+        </div>
+        <button class="btn-download" id="btn-download" onclick="triggerDownload()">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="vertical-align:middle;margin-right:6px">
+            <path d="M8 1v9M5 7l3 3 3-3M2 12v2h12v-2" stroke="white" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+          Download Excel File
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- AUTH MODAL (Strict Access) -->
+  <div id="auth-modal"
+    style="display:flex; position:fixed; inset:0; z-index:9999; background:#0D0D0D; align-items:center; justify-content:center; overflow:hidden;">
+
+    <!-- Custom Styles for Auth Portal -->
+    <style>
+      @keyframes floatGlow1 {
+
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+
+        50% {
+          transform: translate(40px, -30px) scale(1.15);
+        }
+      }
+
+      @keyframes floatGlow2 {
+
+        0%,
+        100% {
+          transform: translate(0, 0) scale(1);
+        }
+
+        50% {
+          transform: translate(-30px, 40px) scale(1.1);
+        }
+      }
+
+      @keyframes shieldPulse {
+
+        0%,
+        100% {
+          transform: scale(1);
+          filter: drop-shadow(0 0 3px rgba(59, 130, 246, 0.4));
+        }
+
+        50% {
+          transform: scale(1.08);
+          filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.85));
+        }
+      }
+
+      .auth-glow-1 {
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.22) 0%, transparent 70%);
+        top: -150px;
+        left: -150px;
+        filter: blur(50px);
+        pointer-events: none;
+        animation: floatGlow1 15s ease-in-out infinite;
+        z-index: 0;
+      }
+
+      .auth-glow-2 {
+        position: absolute;
+        width: 550px;
+        height: 550px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, transparent 70%);
+        bottom: -150px;
+        right: -150px;
+        filter: blur(50px);
+        pointer-events: none;
+        animation: floatGlow2 18s ease-in-out infinite alternate;
+        z-index: 0;
+      }
+
+      .auth-glass-card {
+        background: #1C1C1C !important;
+        border: 1px solid rgba(59, 130, 246, 0.25) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), 0 0 40px rgba(59, 130, 246, 0.1) !important;
+        width: 380px;
+        margin: auto;
+        position: relative;
+        padding: 36px !important;
+        z-index: 10;
+        transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+      }
+
+      .auth-field {
+        margin-bottom: 20px;
+      }
+
+      .auth-input-field {
+        font-family: var(--sans) !important;
+        font-size: 0.9rem !important;
+        background: #0D0D0D !important;
+        border: 1.5px solid var(--border) !important;
+        border-radius: 10px !important;
+        padding: 12px 14px !important;
+        color: var(--text) !important;
+        transition: all 0.25s ease !important;
+      }
+
+      .auth-input-field:focus {
+        border-color: #3B82F6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.22), 0 0 20px rgba(59, 130, 246, 0.15) !important;
+      }
+
+      .auth-btn-action {
+        background: #3B82F6 !important;
+        border: none !important;
+        border-radius: 10px !important;
+        color: #ffffff !important;
+        font-family: var(--sans) !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        padding: 12px !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 18px rgba(59, 130, 246, 0.3) !important;
+        transition: all 0.25s ease !important;
+        width: 100%;
+      }
+
+      .auth-btn-action:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4) !important;
+      }
+
+      .auth-btn-action:active {
+        transform: translateY(0) !important;
+      }
+
+      .auth-switch-link {
+        color: #3B82F6 !important;
+        text-decoration: none !important;
+        font-weight: 500 !important;
+        transition: color 0.25s ease !important;
+      }
+
+      .auth-switch-link:hover {
+        color: #60a5fa !important;
+        text-decoration: underline !important;
+      }
+
+      .verify-desc {
+        font-size: 0.8rem !important;
+        color: var(--muted) !important;
+        margin-top: 10px !important;
+        line-height: 1.5 !important;
+      }
+    </style>
+
+    <!-- Glowing ambient background spheres -->
+    <div class="auth-glow-1"></div>
+    <div class="auth-glow-2"></div>
+
+    <!-- Login / Register Card -->
+    <div id="auth-card" class="auth-glass-card">
+      <div style="text-align:center; margin-bottom:24px;">
+        <svg width="36" height="36" viewBox="0 0 32 32" fill="none"
+          style="margin-bottom:12px; animation: shieldPulse 3s infinite ease-in-out;">
+          <path d="M16 7L23 10.5L23 17C23 21.5 16 24 16 24C16 24 9 21.5 9 17L9 10.5Z" fill="rgba(59,130,246,.2)"
+            stroke="#3B82F6" stroke-width="1.8" />
+          <circle cx="16" cy="16" r="3" fill="#3B82F6" />
+        </svg>
+        <h3 id="auth-title"
+          style="font-family:var(--display); font-size:1.55rem; color:var(--text); font-weight:700; letter-spacing:-0.01em;">
+          Sign In</h3>
+      </div>
+
+      <div class="auth-field">
+        <label class="lbl">Username or Email</label>
+        <input type="text" class="auth-input-field" id="auth-user" placeholder="Enter username or email" />
+      </div>
+      <div class="auth-field" id="auth-email-field" style="display:none;">
+        <label class="lbl">Email Address</label>
+        <input type="email" class="auth-input-field" id="auth-email" placeholder="Enter email" />
+      </div>
+      <div class="auth-field" style="margin-bottom:10px;">
+        <label class="lbl">Password</label>
+        <input type="password" class="auth-input-field" id="auth-pass" placeholder="Enter password" />
+      </div>
+      <div style="text-align: right; margin-bottom: 28px;">
+        <a href="#" onclick="showResetRequestCard()" id="auth-forgot-link" class="auth-switch-link" style="font-size: 0.75rem;">Forgot Password?</a>
+      </div>
+
+      <div id="auth-error"
+        style="color:#f87171; font-size:.78rem; margin-top:-16px; margin-bottom:16px; text-align:center; display:none; background:rgba(239,68,68,0.1); padding:8px 12px; border-radius:8px; border:1px solid rgba(239,68,68,0.2);">
+      </div>
+
+      <button class="auth-btn-action" onclick="submitAuth()">Continue</button>
+      <p style="text-align:center; font-size:.78rem; margin-top:20px; color:var(--muted);">
+        <a href="#" onclick="toggleAuthMode()" id="auth-toggle-btn" class="auth-switch-link">Need an account? Sign
+          Up</a>
+      </p>
+    </div>
+
+    <!-- Verification Card -->
+    <div id="verify-card" class="auth-glass-card" style="display:none;">
+      <div style="text-align:center; margin-bottom:24px;">
+        <svg width="36" height="36" viewBox="0 0 32 32" fill="none"
+          style="margin-bottom:12px; animation: shieldPulse 2s infinite ease-in-out;">
+          <path d="M16 7L23 10.5L23 17C23 21.5 16 24 16 24C16 24 9 21.5 9 17L9 10.5Z" fill="rgba(249,115,22,.2)"
+            stroke="#F97316" stroke-width="1.8" />
+          <path d="M13 16l2 2 4-4" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <h3
+          style="font-family:var(--display); font-size:1.55rem; color:var(--text); font-weight:700; letter-spacing:-0.01em;">
+          Verify Email</h3>
+        <p class="verify-desc">We sent a 6-digit verification code to your email. Please check your inbox to activate
+          your account!</p>
+      </div>
+
+      <div class="auth-field" style="margin-bottom:28px;">
+        <label class="lbl" style="text-align:center;">6-Digit Verification Code</label>
+        <input type="text" class="auth-input-field" id="auth-code" placeholder="------"
+          style="text-align:center; font-size:1.35rem; letter-spacing:0.5em; font-family:var(--mono) !important; background:#0D0D0D !important;"
+          maxlength="6" />
+      </div>
+
+      <div id="verify-error"
+        style="color:#f87171; font-size:.78rem; margin-top:-16px; margin-bottom:16px; text-align:center; display:none; background:rgba(239,68,68,0.1); padding:8px 12px; border-radius:8px; border:1px solid rgba(239,68,68,0.2);">
+      </div>
+
+      <button class="auth-btn-action"
+        style="background: #F97316 !important; box-shadow: 0 4px 18px rgba(249,115,22, 0.3) !important;"
+        onclick="submitVerify()">Verify Account</button>
+      <p style="text-align:center; font-size:.78rem; margin-top:20px; color:var(--muted);">
+        <a href="#" onclick="cancelVerify()" class="auth-switch-link" style="color:var(--muted) !important;">Back to
+          Sign In</a>
+      </p>
+    </div>
+
+    <!-- Reset Request Card -->
+    <div id="reset-request-card" class="auth-glass-card" style="display:none;">
+      <div style="text-align:center; margin-bottom:24px;">
+        <h3 style="font-family:var(--display); font-size:1.55rem; color:var(--text); font-weight:700; letter-spacing:-0.01em;">Reset Password</h3>
+        <p class="verify-desc">Enter your username or email and we'll send you a verification code to reset your password.</p>
+      </div>
+
+      <div class="auth-field" style="margin-bottom:28px;">
+        <label class="lbl">Username or Email</label>
+        <input type="text" class="auth-input-field" id="reset-user" placeholder="Enter username or email" />
+      </div>
+
+      <div id="reset-req-error" style="color:#f87171; font-size:.78rem; margin-top:-16px; margin-bottom:16px; text-align:center; display:none; background:rgba(239,68,68,0.1); padding:8px 12px; border-radius:8px; border:1px solid rgba(239,68,68,0.2);"></div>
+
+      <button class="auth-btn-action" onclick="submitResetRequest()">Send Code</button>
+      <p style="text-align:center; font-size:.78rem; margin-top:20px; color:var(--muted);">
+        <a href="#" onclick="showAuthModal()" class="auth-switch-link">Back to Sign In</a>
+      </p>
+    </div>
+
+    <!-- Reset Submit Card -->
+    <div id="reset-submit-card" class="auth-glass-card" style="display:none;">
+      <div style="text-align:center; margin-bottom:24px;">
+        <h3 style="font-family:var(--display); font-size:1.55rem; color:var(--text); font-weight:700; letter-spacing:-0.01em;">Set New Password</h3>
+        <p class="verify-desc">Enter the 6-digit code sent to your email along with your new password.</p>
+      </div>
+
+      <div class="auth-field">
+        <label class="lbl" style="text-align:center;">6-Digit Verification Code</label>
+        <input type="text" class="auth-input-field" id="reset-code" placeholder="------" style="text-align:center; font-size:1.35rem; letter-spacing:0.5em; font-family:var(--mono) !important; background:#0D0D0D !important;" maxlength="6" />
+      </div>
+
+      <div class="auth-field" style="margin-bottom:15px; margin-top: 15px;">
+        <label class="lbl">New Password</label>
+        <input type="password" class="auth-input-field" id="reset-new-pass" placeholder="Enter new password" />
+      </div>
+
+      <div class="auth-field" style="margin-bottom:28px;">
+        <label class="lbl">Confirm New Password</label>
+        <input type="password" class="auth-input-field" id="reset-confirm-pass" placeholder="Re-enter new password" />
+      </div>
+
+      <div id="reset-sub-error" style="color:#f87171; font-size:.78rem; margin-top:-16px; margin-bottom:16px; text-align:center; display:none; background:rgba(239,68,68,0.1); padding:8px 12px; border-radius:8px; border:1px solid rgba(239,68,68,0.2);"></div>
+
+      <button class="auth-btn-action" style="background: #F97316 !important; box-shadow: 0 4px 18px rgba(249,115,22, 0.3) !important;" onclick="submitResetPassword()">Update Password</button>
+      <p style="text-align:center; font-size:.78rem; margin-top:20px; color:var(--muted);">
+        <a href="#" onclick="showAuthModal()" class="auth-switch-link" style="color:var(--muted) !important;">Cancel</a>
+      </p>
+    </div>
+  </div>
+
+  <script>
+    /* ════════════════════════════════════════════════
+       AUTHENTICATION LOGIC
+    ════════════════════════════════════════════════ */
+    let authMode = 'login';
+
+    function checkAuth() {
+      const user = localStorage.getItem('sme_username');
+      if (user) {
+        document.getElementById('nav-user-display').textContent = `Welcome, ${user}`;
+        document.getElementById('nav-user-display').style.display = 'block';
+        document.getElementById('nav-logout-btn').style.display = 'block';
+        document.getElementById('nav-login-btn').style.display = 'none';
+        document.getElementById('auth-modal').style.display = 'none';
+      } else {
+        document.getElementById('nav-user-display').style.display = 'none';
+        document.getElementById('nav-logout-btn').style.display = 'none';
+        document.getElementById('nav-login-btn').style.display = 'block';
+        // Enforce strict access
+        showAuthModal();
+      }
+    }
+
+    function showAuthModal() {
+      document.getElementById('auth-modal').style.display = 'flex';
+      document.getElementById('auth-card').style.display = 'block';
+      document.getElementById('verify-card').style.display = 'none';
+      document.getElementById('reset-request-card').style.display = 'none';
+      document.getElementById('reset-submit-card').style.display = 'none';
+      document.getElementById('auth-error').style.display = 'none';
+      document.getElementById('auth-user').value = '';
+      document.getElementById('auth-pass').value = '';
+      document.getElementById('auth-email').value = '';
+      document.getElementById('reset-code').value = '';
+      document.getElementById('reset-new-pass').value = '';
+      document.getElementById('reset-confirm-pass').value = '';
+      authMode = 'login';
+      document.getElementById('auth-title').textContent = 'Sign In';
+      document.getElementById('auth-email-field').style.display = 'none';
+      document.getElementById('auth-forgot-link').style.display = 'inline';
+      document.getElementById('auth-toggle-btn').textContent = 'Need an account? Sign Up';
+    }
+
+    function toggleAuthMode() {
+      if (authMode === 'login') {
+        authMode = 'register';
+        document.getElementById('auth-title').textContent = 'Create Account';
+        document.getElementById('auth-email-field').style.display = 'block';
+        document.getElementById('auth-forgot-link').style.display = 'none';
+        document.getElementById('auth-toggle-btn').textContent = 'Already have an account? Sign In';
+      } else {
+        authMode = 'login';
+        document.getElementById('auth-title').textContent = 'Sign In';
+        document.getElementById('auth-email-field').style.display = 'none';
+        document.getElementById('auth-forgot-link').style.display = 'inline';
+        document.getElementById('auth-toggle-btn').textContent = 'Need an account? Sign Up';
+      }
+    }
+
+    // Stores temporarily for verify step
+    let pendingUser = '';
+
+    async function submitAuth() {
+      const user = document.getElementById('auth-user').value.trim();
+      const pass = document.getElementById('auth-pass').value.trim();
+      const email = document.getElementById('auth-email').value.trim();
+      const errEl = document.getElementById('auth-error');
+
+      if (!user || !pass || (authMode === 'register' && !email)) {
+        errEl.textContent = 'Please fill out all fields';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      const endpoint = authMode === 'login' ? '/api/login' : '/api/register';
+      const bodyPayload = authMode === 'login' ? { username: user, password: pass } : { username: user, password: pass, email: email };
+
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyPayload)
+        });
+        const data = await res.json();
+
+        if (data.success && !data.require_verification) {
+          localStorage.setItem('sme_username', data.username || user);
+          checkAuth();
+          renderHistory(); // Refresh history
+        } else if (data.require_verification) {
+          // Both Registration success OR Login on unverified account routes here
+          pendingUser = data.username || user;
+          document.getElementById('auth-card').style.display = 'none';
+          document.getElementById('verify-card').style.display = 'block';
+          document.getElementById('auth-code').value = '';
+          document.getElementById('verify-error').style.display = 'none';
+        } else {
+          errEl.textContent = data.error || 'Authentication failed';
+          errEl.style.display = 'block';
+        }
+      } catch (e) {
+        errEl.textContent = 'Network error connecting to server.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    async function submitVerify() {
+      const code = document.getElementById('auth-code').value.trim();
+      const errEl = document.getElementById('verify-error');
+
+      if (!code) {
+        errEl.textContent = 'Enter the verification code';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: pendingUser, code: code })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          localStorage.setItem('sme_username', pendingUser);
+          checkAuth();
+          renderHistory();
+        } else {
+          errEl.textContent = data.error || 'Invalid code';
+          errEl.style.display = 'block';
+        }
+      } catch (e) {
+        errEl.textContent = 'Network error connecting to server.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    function cancelVerify() {
+      showAuthModal();
+    }
+
+    // Stores temporarily for reset step
+    let pendingResetUser = '';
+
+    function showResetRequestCard() {
+      document.getElementById('auth-card').style.display = 'none';
+      document.getElementById('reset-request-card').style.display = 'block';
+      document.getElementById('reset-user').value = document.getElementById('auth-user').value;
+      document.getElementById('reset-req-error').style.display = 'none';
+    }
+
+    async function submitResetRequest() {
+      const user = document.getElementById('reset-user').value.trim();
+      const errEl = document.getElementById('reset-req-error');
+      
+      if (!user) {
+        errEl.textContent = 'Enter your username or email';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+      pendingResetUser = user;
+
+      try {
+        const res = await fetch('/api/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: user })
+        });
+        const data = await res.json();
+        
+        // We always show success to prevent user enumeration
+        document.getElementById('reset-request-card').style.display = 'none';
+        document.getElementById('reset-submit-card').style.display = 'block';
+        document.getElementById('reset-code').value = '';
+        document.getElementById('reset-new-pass').value = '';
+        document.getElementById('reset-confirm-pass').value = '';
+        document.getElementById('reset-sub-error').style.display = 'none';
+      } catch (e) {
+        errEl.textContent = 'Network error connecting to server.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    async function submitResetPassword() {
+      const code = document.getElementById('reset-code').value.trim();
+      const newPass = document.getElementById('reset-new-pass').value.trim();
+      const confirmPass = document.getElementById('reset-confirm-pass').value.trim();
+      const errEl = document.getElementById('reset-sub-error');
+
+      if (!code || !newPass || !confirmPass) {
+        errEl.textContent = 'Please fill out all fields';
+        errEl.style.display = 'block';
+        return;
+      }
+      if (newPass !== confirmPass) {
+        errEl.textContent = 'Passwords do not match';
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: pendingResetUser, code: code, new_password: newPass })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          showAuthModal();
+          // Optionally show a success message on the login card
+          const loginErrEl = document.getElementById('auth-error');
+          loginErrEl.textContent = 'Password reset successfully! Please log in.';
+          loginErrEl.style.display = 'block';
+          loginErrEl.style.color = '#34d399';
+          loginErrEl.style.background = 'rgba(52,211,153,0.1)';
+          loginErrEl.style.border = '1px solid rgba(52,211,153,0.2)';
+        } else {
+          errEl.textContent = data.error || 'Invalid code';
+          errEl.style.display = 'block';
+        }
+      } catch (e) {
+        errEl.textContent = 'Network error connecting to server.';
+        errEl.style.display = 'block';
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('sme_username');
+      checkAuth();
+      renderHistory();
+    }
+
+    /* ════════════════════════════════════════════════
+       HISTORY (Local + Server)
+    ════════════════════════════════════════════════ */
+    function getHistoryKey() {
+      const user = localStorage.getItem('sme_username') || 'guest';
+      return 'sme_history_' + user;
+    }
+
+    function getHistory() {
+      return JSON.parse(localStorage.getItem(getHistoryKey()) || '[]').slice().reverse();
+    }
+
+    function pushHistory(entry) {
+      const key = getHistoryKey();
+      let hist = JSON.parse(localStorage.getItem(key) || '[]');
+      hist.push(entry);
+      if (hist.length > 20) {
+        hist = hist.slice(hist.length - 20);
+      }
+      localStorage.setItem(key, JSON.stringify(hist));
+    }
+
+    function clearHistory() {
+      localStorage.setItem(getHistoryKey(), '[]');
+      renderHistory();
+    }
+
+    async function renderHistory() {
+      const list = document.getElementById('history-list');
+      const empty = document.getElementById('history-empty');
+      list.innerHTML = '';
+
+      const localItems = getHistory();
+
+      if (localItems.length === 0) {
+        list.appendChild(empty);
+        return;
+      }
+
+      // Render Local Items (which have full params for Reuse)
+      localItems.forEach((h, i) => {
+        const div = document.createElement('div');
+        div.className = 'hist-item';
+        div.style.display = 'flex';
+        div.style.flexDirection = 'column';
+        div.style.alignItems = 'stretch';
+        div.style.gap = '8px';
+        div.style.padding = '16px 20px';
+
+        const rawHist = JSON.parse(localStorage.getItem(getHistoryKey()) || '[]');
+        const realIdx = rawHist.length - 1 - i;
+
+        // Build readable specifications list
+        const specs = [];
+        
+        // 1. Compositions list/count
+        const compCount = h.compositions ? h.compositions.length : 1;
+        if (compCount > 1) {
+          specs.push(`${compCount} Compositions`);
+        } else {
+          specs.push(h.composition);
+        }
+        
+        // 2. Energy Grid
+        if (h.energy_mode === '1') specs.push('25 Standard Energies');
+        else if (h.energy_mode === '0') specs.push('80 Standard Energies');
+        else specs.push('No Energy Grid');
+        
+        // 3. Isotopes
+        if (h.isotopes && h.isotopes.length > 0) {
+          specs.push(`Isotopes: ${h.isotopes.map(iso => iso.replace(/\s+/g, '')).join(', ')}`);
+        }
+        
+        // 4. Output Parameters (first 3 + count if more)
+        if (h.params && h.params.length > 0) {
+          const paramNames = h.params.map(p => p.toUpperCase());
+          if (paramNames.length <= 4) {
+            specs.push(`Params: ${paramNames.join(', ')}`);
+          } else {
+            specs.push(`Params: ${paramNames.slice(0, 3).join(', ')} (+${paramNames.length - 3} more)`);
+          }
+        }
+        
+        // 5. Thicknesses / Depths count
+        const thickCount = h.thicknesses ? h.thicknesses.length : 0;
+        const depthCount = h.depths ? h.depths.length : 0;
+        if (thickCount > 0 || depthCount > 0) {
+          const parts = [];
+          if (thickCount > 0) parts.push(`${thickCount} Thicknesses`);
+          if (depthCount > 0) parts.push(`${depthCount} Depths`);
+          specs.push(parts.join(' / '));
+        }
+
+        // 6. Density, Bandgap, CN specifications
+        const densities = [];
+        const bandgaps = [];
+        const cns = [];
+
+        if (h.compositions) {
+          h.compositions.forEach(c => {
+            if (c.density && c.density > 0) densities.push(c.density);
+            if (c.eg && c.eg > 0) bandgaps.push(c.eg);
+            if (c.cn && c.cn.trim()) cns.push(c.cn.trim());
+          });
+        } else {
+          if (h.density && h.density > 0) densities.push(h.density);
+        }
+
+        if (densities.length > 0) {
+          specs.push(`Density: ${densities.join(', ')} g/cm³`);
+        }
+        if (bandgaps.length > 0) {
+          specs.push(`Band Gap: ${bandgaps.join(', ')} eV`);
+        }
+        if (cns.length > 0) {
+          specs.push(`CN: ${cns.map(cn => `[${cn}]`).join(', ')}`);
+        }
+
+        const title = h.material_name ? h.material_name.trim() : h.composition;
+        const subtitle = h.material_name ? h.composition : 'Material calculation';
+        
+        div.innerHTML = `
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+            <div>
+              <div class="hist-formula" style="font-size: 0.95rem; font-weight: 700; color: var(--text); font-family: var(--sans); white-space: normal; line-height: 1.3;">${title}</div>
+              ${h.material_name ? `<div style="font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-top: 2px;">${subtitle}</div>` : ''}
+            </div>
+            <span class="hist-rerun" onclick="reuseHistory(${realIdx})" style="background: var(--b50); border: 1px solid var(--b100); border-radius: 20px; padding: 4px 12px; cursor: pointer; font-family: var(--sans); font-size: 0.72rem; font-weight: 600; color: var(--b300); transition: all 0.2s; white-space: nowrap; margin-top: 2px;">Reuse →</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;">
+            ${specs.map(spec => `<span class="hist-badge" style="font-size: 0.65rem; padding: 2px 8px; border-radius: 4px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); color: var(--muted);">${spec}</span>`).join('')}
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 0.65rem; color: var(--g200); font-family: var(--mono);">
+            <span>Date: ${new Date(h.ts).toLocaleDateString()} at ${new Date(h.ts).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    let draggedTab = null;
+
+    function handleDragStart(e) {
+      draggedTab = this;
+      this.style.opacity = '0.4';
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', this.dataset.compId);
+    }
+
+    function handleDragOver(e) {
+      if (e.preventDefault) {
+        e.preventDefault();
+      }
+      e.dataTransfer.dropEffect = 'move';
+      return false;
+    }
+
+    function handleDragEnter(e) {
+      if (this !== draggedTab) {
+        this.classList.add('drag-over');
+      }
+    }
+
+    function handleDragLeave(e) {
+      this.classList.remove('drag-over');
+    }
+
+    function handleDragEnd(e) {
+      this.style.opacity = '1';
+      document.querySelectorAll('.comp-tab').forEach(t => {
+        t.classList.remove('drag-over');
+      });
+    }
+
+    function handleDrop(e) {
+      e.stopPropagation();
+      e.preventDefault();
+      if (draggedTab !== this) {
+        const tabsBar = document.getElementById('comp-tabs-bar');
+        const allTabs = Array.from(tabsBar.querySelectorAll('.comp-tab'));
+        const draggedIndex = allTabs.indexOf(draggedTab);
+        const targetIndex = allTabs.indexOf(this);
+        
+        if (draggedIndex < targetIndex) {
+          tabsBar.insertBefore(draggedTab, this.nextSibling);
+        } else {
+          tabsBar.insertBefore(draggedTab, this);
+        }
+        
+        // Sync panel order
+        const container = document.getElementById('compositions-container');
+        const newTabs = Array.from(tabsBar.querySelectorAll('.comp-tab'));
+        newTabs.forEach(t => {
+          const compId = t.dataset.compId;
+          const panel = container.querySelector(`.comp-tab-panel[data-comp-id="${compId}"]`);
+          if (panel) {
+            container.appendChild(panel);
+          }
+        });
+      }
+      return false;
+    }
+
+    let _compCounter = 0;
+
+    function addCompositionRow(formula = '', density = '', code = '', dopant = '', eg = '', cn = '') {
+      const container = document.getElementById('compositions-container');
+      const tabsBar = document.getElementById('comp-tabs-bar');
+
+      // Find the first available S<number> label starting from 1
+      let nextIndex = 1;
+      const existingLabels = Array.from(tabsBar.querySelectorAll('.comp-tab-label')).map(el => el.textContent.trim());
+      while (existingLabels.includes('S' + nextIndex)) {
+        nextIndex++;
+      }
+      const defaultCode = 'S' + nextIndex;
+
+      _compCounter++;
+      const compId = _compCounter;
+      const displayCode = code || defaultCode;
+
+      // ── Create tab button ──
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'comp-tab';
+      tab.dataset.compId = compId;
+      tab.innerHTML = `<span class="comp-tab-label">${displayCode}</span><span class="comp-tab-close" onclick="event.stopPropagation(); removeCompositionTab(${compId})">\u00d7</span>`;
+      tab.addEventListener('click', () => switchCompositionTab(compId));
+
+      // Make draggable
+      tab.setAttribute('draggable', 'true');
+      tab.addEventListener('dragstart', handleDragStart);
+      tab.addEventListener('dragover', handleDragOver);
+      tab.addEventListener('dragenter', handleDragEnter);
+      tab.addEventListener('dragleave', handleDragLeave);
+      tab.addEventListener('dragend', handleDragEnd);
+      tab.addEventListener('drop', handleDrop);
+
+      // Insert before the "+" add button
+      const addBtn = tabsBar.querySelector('.comp-tab-add');
+      tabsBar.insertBefore(tab, addBtn);
+
+      // ── Create tab panel ──
+      const panel = document.createElement('div');
+      panel.className = 'comp-tab-panel';
+      panel.dataset.compId = compId;
+      panel.innerHTML = `
+        <div style="margin-bottom: 12px; font-size: 0.8rem;">
+          <label style="margin-right: 15px; cursor: pointer;"><input type="radio" class="comp-basis-radio" name="basis_${compId}" value="mole" checked> Mole Basis</label>
+          <label style="cursor: pointer;"><input type="radio" class="comp-basis-radio" name="basis_${compId}" value="weight"> Weight Basis</label>
+        </div>
+        <div class="comp-field-grid">
+          <div class="comp-formula-col">
+            <label class="lbl">Material Formula</label>
+            <input type="text" class="comp-formula-input" placeholder="e.g.  0.1B2O3+0.1PbO" value="${formula}" required />
+          </div>
+          <div class="comp-code-col">
+            <label class="lbl">Code <span style="font-weight:300;font-size:.6rem;text-transform:none;letter-spacing:0">(label)</span></label>
+            <input type="text" class="comp-code-input" placeholder="${defaultCode}" value="${code}" style="font-family:var(--mono);font-weight:600;" />
+          </div>
+          <div class="comp-density-col">
+            <label class="lbl">Density <span style="font-weight:300;font-size:.6rem;text-transform:none;letter-spacing:0">(g/cm³)</span></label>
+            <input type="number" class="comp-density-input" placeholder="e.g.  3.2" step="any" min="0" value="${density}" />
+          </div>
+          <div class="comp-eg-col">
+            <label class="lbl">Band Gap <span style="font-weight:300;font-size:.6rem;text-transform:none;letter-spacing:0">(eV)</span></label>
+            <input type="number" class="comp-eg-input" placeholder="e.g. 3.0" step="any" min="0" value="${eg}" style="font-family:var(--mono);font-weight:600;" />
+          </div>
+          <div class="comp-dopant-col">
+            <label class="lbl">Dopant <span style="font-weight:300;font-size:.6rem;text-transform:none;letter-spacing:0">(ion)</span></label>
+            <input type="text" class="comp-dopant-input" placeholder="e.g. Pb" value="${dopant}" style="font-family:var(--mono);font-weight:600;" title="Cation symbol for ion-specific properties (e.g. Pb, Bi, Na). Leave blank to include all cations." />
+          </div>
+          <div class="comp-cn-col">
+            <label class="lbl">CN <span style="font-weight:300;font-size:.6rem;text-transform:none;letter-spacing:0">(space sep)</span></label>
+            <input type="text" class="comp-cn-input" placeholder="e.g. 3 4" value="${cn}" style="font-family:var(--mono);font-weight:600;" title="Coordination Number of each material, space separated." />
+          </div>
+        </div>
+      `;
+      container.appendChild(panel);
+
+      // Wire code input to update tab label live
+      const codeInput = panel.querySelector('.comp-code-input');
+      codeInput.addEventListener('input', () => {
+        const label = tab.querySelector('.comp-tab-label');
+        label.textContent = codeInput.value.trim() || defaultCode;
+      });
+
+      // Activate this tab
+      switchCompositionTab(compId);
+      updateCompTabCloseButtons();
+      updateStepNumbers();
+      updateFieldVisibility();
+    }
+
+    function switchCompositionTab(compId) {
+      document.querySelectorAll('.comp-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.comp-tab-panel').forEach(p => p.classList.remove('active'));
+      const tab = document.querySelector(`.comp-tab[data-comp-id="${compId}"]`);
+      const panel = document.querySelector(`.comp-tab-panel[data-comp-id="${compId}"]`);
+      if (tab) tab.classList.add('active');
+      if (panel) panel.classList.add('active');
+    }
+
+    function removeCompositionTab(compId) {
+      const tab = document.querySelector(`.comp-tab[data-comp-id="${compId}"]`);
+      const panel = document.querySelector(`.comp-tab-panel[data-comp-id="${compId}"]`);
+      if (!tab || !panel) return;
+
+      const allTabs = [...document.querySelectorAll('.comp-tab')];
+      if (allTabs.length <= 1) return; // keep at least one
+
+      const wasActive = tab.classList.contains('active');
+      const idx = allTabs.indexOf(tab);
+
+      tab.remove();
+      panel.remove();
+
+      if (wasActive) {
+        const remaining = [...document.querySelectorAll('.comp-tab')];
+        if (remaining.length > 0) {
+          const newIdx = Math.min(idx, remaining.length - 1);
+          switchCompositionTab(remaining[newIdx].dataset.compId);
+        }
+      }
+      updateCompTabCloseButtons();
+      updateStepNumbers();
+      updateFieldVisibility();
+    }
+
+    function updateCompTabCloseButtons() {
+      const tabs = document.querySelectorAll('.comp-tab');
+      tabs.forEach(tab => {
+        const closeBtn = tab.querySelector('.comp-tab-close');
+        if (closeBtn) closeBtn.style.display = tabs.length > 1 ? 'inline' : 'none';
+      });
+    }
+
+    function clearAllCompositionTabs() {
+      document.getElementById('compositions-container').innerHTML = '';
+      const tabsBar = document.getElementById('comp-tabs-bar');
+      tabsBar.querySelectorAll('.comp-tab').forEach(t => t.remove());
+      _compCounter = 0;
+    }
+
+    function reuseHistory(idx) {
+      const hist = JSON.parse(localStorage.getItem(getHistoryKey()) || '[]');
+      const h = hist[idx];
+      if (!h) return;
+
+      // Restore param checkboxes, energy mode, and isotopes BEFORE adding composition rows.
+      // This is critical because addCompositionRow() calls updateFieldVisibility() internally,
+      // which clears eg/cn/density inputs if their dependent params aren't checked yet.
+      document.querySelectorAll('input[name="energy_mode"]').forEach(r => r.checked = (r.value === h.energy_mode));
+      document.querySelectorAll('.iso-check').forEach(c => c.checked = (h.isotopes || []).includes(c.value));
+      document.querySelectorAll('.param-check').forEach(c => c.checked = (h.params || []).includes(c.value));
+
+      // Clear tabs and load compositions (updateFieldVisibility inside will now see correct params)
+      clearAllCompositionTabs();
+      const compsToLoad = h.compositions || [{ composition: h.composition || '', density: h.density || '', code: '', dopant: '', eg: '', cn: '' }];
+      compsToLoad.forEach(c => {
+        addCompositionRow(c.composition, c.density, c.code || '', c.dopant || '', c.eg || '', c.cn || '');
+      });
+
+      document.getElementById('mat-name').value = h.material_name || '';
+      document.getElementById('thicknesses').value = (h.thicknesses || []).join(' ');
+      document.getElementById('depths').value = (h.depths || []).join(' ');
+      if (document.getElementById('target-ion')) document.getElementById('target-ion').value = h.target_ion || '';
+      updateTagPreviews();
+      updateFieldVisibility();
+      goTo('calc');
+    }
+
+    /* ════════════════════════════════════════════════
+       PAGE ROUTER
+    ════════════════════════════════════════════════ */
+    function goTo(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      window.scrollTo(0, 0);
+      if (id === 'home') renderHistory();
+    }
+
+    /* ════════════════════════════════════════════════
+       LIVE TAG PREVIEWS
+    ════════════════════════════════════════════════ */
+    function livePreview(inputEl, previewEl) {
+      inputEl.addEventListener('input', () => {
+        const vals = inputEl.value.trim().split(/\s+/).filter(v => v !== '');
+        previewEl.innerHTML = '';
+        vals.forEach(v => { const t = document.createElement('span'); t.className = 'tag'; t.textContent = v; previewEl.appendChild(t); });
+      });
+    }
+    livePreview(document.getElementById('thicknesses'), document.getElementById('thick-preview'));
+    livePreview(document.getElementById('depths'), document.getElementById('depth-preview'));
+
+    function updateTagPreviews() {
+      ['thicknesses', 'depths'].forEach(id => {
+        const el = document.getElementById(id);
+        const prev = document.getElementById(id === 'thicknesses' ? 'thick-preview' : 'depth-preview');
+        const vals = el.value.trim().split(/\s+/).filter(v => v !== '');
+        prev.innerHTML = '';
+        vals.forEach(v => { const t = document.createElement('span'); t.className = 'tag'; t.textContent = v; prev.appendChild(t); });
+      });
+    }
+
+    function parseNums(str) { return str.trim().split(/\s+/).filter(Boolean).map(Number).filter(n => !isNaN(n)); }
+
+    /* ════════════════════════════════════════════════
+       TABBED INTERFACE CONTROLLER
+    ════════════════════════════════════════════════ */
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        if (btn.getAttribute('data-tab') === tabId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      document.querySelectorAll('.tab-content').forEach(content => {
+        if (content.id === `tab-${tabId}`) {
+          content.classList.add('active');
+        } else {
+          content.classList.remove('active');
+        }
+      });
+    }
+
+    // Programmatically wire up tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.getAttribute('data-tab');
+        switchTab(tabId);
+      });
+    });
+
+    /* ════════════════════════════════════════════════
+       PARAM SELECT-ALL
+    ════════════════════════════════════════════════ */
+    function selectAllParams(val) {
+      const activeTab = document.querySelector('.tab-content.active');
+      if (activeTab) {
+        activeTab.querySelectorAll('.param-check').forEach(c => c.checked = val);
+      }
+      updateFieldVisibility();
+    }
+
+    /* ════════════════════════════════════════════════
+       REACTIVE FIELD VISIBILITY
+       Rules (exact):
+       • Composition only  → mac, zeff, ne, zeq, gp, mole
+       • Needs Density     → lac, mfp, hvl, tvl, physical, mechanical, optical properties
+       • Needs Density + Thickness → tf, rpe, leq
+       • Needs MFP/x values → ebf, eabf
+    ════════════════════════════════════════════════ */
+    const DENSITY_PARAMS = {
+      lac: 'LAC', mfp: 'MFP', hvl: 'HVL', tvl: 'TVL', tf: 'Transmission Factor', rpe: 'RPE', leq: 'L_eq',
+      molar_vol: 'Molar Volume', opd: 'Oxygen Packing Density', o_molar_vol: 'Oxygen Molar Volume',
+      'p-dB_B': 'Avg. Distance between boron atoms', 'ion-conc': 'Ion concentration',
+      inter_ionic_dist: 'Inter-ionic Distance', polaron_radius: 'Polaron Radius', field_strength: 'Field Strength',
+      youngs_modulus: "Young's Modulus", bulk_modulus: 'Bulk Modulus', shear_modulus: 'Shear Modulus',
+      longitudinal_modulus: 'Longitudinal Modulus', poissons_ratio: "Poisson's Ratio",
+      hardness: 'Vickers Hardness', packing_density: 'Packing Density', dissociation_energy: 'Dissociation Energy',
+      molar_refractivity: 'Molar Refractivity', molar_polarizability: 'Molar Polarizability',
+      electronic_polarizability: 'Electronic Polarizability', metallization: 'Metallization Criterion',
+      density_output: 'Density'
+    };
+    const EG_PARAMS = {
+      refractive_index: 'Refractive Index', dielectric_constant: 'Dielectric Constant',
+      opt_dielectric_constant: 'Optical Dielectric Constant', reflection_loss: 'Reflection Loss',
+      molar_refractivity: 'Molar Refractivity', metallization: 'Metallization Criterion',
+      molar_polarizability: 'Molar Polarizability', electronic_polarizability: 'Electronic Polarizability',
+      optical_transmission: 'Transmission Coefficient', opt_electronegativity: 'Optical Electronegativity',
+      linear_susceptibility: 'Linear Dielectric Susceptibility', nonlinear_susceptibility: 'Non-linear Optical Susceptibility',
+      nonlinear_refractive_index: 'Non-linear Refractive Index',
+      bandgap_output: 'Bandgap Energy'
+    };
+    const THICKNESS_PARAMS = { tf: 'Transmission Factor', rpe: 'RPE', leq: 'L_eq' };
+    const DEPTH_PARAMS = { ebf: 'EBF', eabf: 'EABF' };
+
+    function checkedParams() {
+      return new Set([...document.querySelectorAll('.param-check:checked')].map(c => c.value));
+    }
+
+    function updateFieldVisibility() {
+      // ── Handle Energy Mode constraints ──
+      const checkedMode = document.querySelector('input[name="energy_mode"]:checked');
+      const energyMode = checkedMode ? checkedMode.value : "-1";
+      const requiresStandard = ['gp', 'zeq', 'ebf', 'eabf'];
+
+      requiresStandard.forEach(val => {
+        const checkEl = document.querySelector(`.param-check[value="${val}"]`);
+        if (!checkEl) return;
+        const container = checkEl.closest('div'); // The wrapping <div> for the checkbox+label
+        if (energyMode === '-1') {
+          checkEl.checked = false;
+          if (container) container.style.display = 'none';
+        } else {
+          if (container) container.style.display = 'block';
+        }
+      });
+
+      const sel = checkedParams();
+
+      // ── Density Card & Inline Inputs ──
+      const densityNeeded = Object.keys(DENSITY_PARAMS).filter(k => sel.has(k));
+      const needsDensity = densityNeeded.length > 0;
+      const densityCard = document.getElementById('card-density');
+      const densityInput = document.getElementById('density');
+
+      // Permanently hide legacy Step 3 density card since density is tied to Step 1 rows
+      densityCard.classList.add('card-hidden');
+      densityInput.required = false;
+      densityInput.value = '';
+
+      // ── Dopant Column ──
+      const DOPANT_PARAMS = ['ion-conc', 'inter_ionic_dist', 'polaron_radius', 'field_strength'];
+      const needsDopant = DOPANT_PARAMS.some(k => sel.has(k));
+      const dopantCols = document.querySelectorAll('.comp-dopant-col');
+
+      if (needsDopant) {
+        dopantCols.forEach(col => col.style.display = 'block');
+      } else {
+        dopantCols.forEach(col => col.style.display = 'none');
+      }
+
+      // ── Eg (Band Gap) Column ──
+      const egNeeded = Object.keys(EG_PARAMS).filter(k => sel.has(k));
+      const needsEg = egNeeded.length > 0;
+      const egCols = document.querySelectorAll('.comp-eg-col');
+
+      if (needsEg) {
+        egCols.forEach(col => col.style.display = 'block');
+        document.querySelectorAll('.comp-eg-input').forEach(input => {
+          input.required = true;
+        });
+      } else {
+        egCols.forEach(col => col.style.display = 'none');
+        document.querySelectorAll('.comp-eg-input').forEach(input => {
+          input.required = false;
+          input.value = '';
+        });
+      }
+
+      // ── CN (Coordination Number) Column ──
+      const MECHANICAL_PARAMS = [
+        'packing_density', 'dissociation_energy', 'youngs_modulus', 'bulk_modulus',
+        'shear_modulus', 'longitudinal_modulus', 'poissons_ratio', 'fractalbondconnectivity', 'hardness'
+      ];
+      const needsCn = MECHANICAL_PARAMS.some(k => sel.has(k));
+      const cnCols = document.querySelectorAll('.comp-cn-col');
+
+      if (needsCn) {
+        cnCols.forEach(col => col.style.display = 'block');
+        document.querySelectorAll('.comp-cn-input').forEach(input => {
+          input.required = true;
+        });
+      } else {
+        cnCols.forEach(col => col.style.display = 'none');
+        document.querySelectorAll('.comp-cn-input').forEach(input => {
+          input.required = false;
+          input.value = '';
+        });
+      }
+
+      // Toggles visibility and 'required' constraint on inline dynamic density inputs
+      const densityCols = document.querySelectorAll('.comp-density-col');
+
+      if (needsDensity) {
+        densityCols.forEach(col => col.style.display = 'block');
+        document.querySelectorAll('.comp-density-input').forEach(input => {
+          input.required = true;
+        });
+      } else {
+        densityCols.forEach(col => col.style.display = 'none');
+        document.querySelectorAll('.comp-density-input').forEach(input => {
+          input.required = false;
+          input.value = ''; // Clear value when not needed to avoid validation bugs
+        });
+      }
+
+      // ── Thickness block ──
+      const thickNeeded = Object.keys(THICKNESS_PARAMS).filter(k => sel.has(k));
+      const needsThick = thickNeeded.length > 0;
+      const thickBlock = document.getElementById('thickness-block');
+      const thickInput = document.getElementById('thicknesses');
+      if (needsThick) {
+        thickBlock.classList.remove('block-hidden');
+        thickInput.required = true;
+        const note = document.getElementById('thickness-note');
+        note.style.display = 'block';
+        document.getElementById('thickness-needed-by').textContent =
+          thickNeeded.map(k => THICKNESS_PARAMS[k]).join(', ');
+      } else {
+        thickBlock.classList.add('block-hidden');
+        thickInput.required = false;
+        thickInput.value = '';
+        document.getElementById('thick-preview').innerHTML = '';
+      }
+
+      // ── MFP Depth block ──
+      const depthNeeded = Object.keys(DEPTH_PARAMS).filter(k => sel.has(k));
+      const needsDepth = depthNeeded.length > 0;
+      const depthBlock = document.getElementById('depth-block');
+      const depthInput = document.getElementById('depths');
+      if (needsDepth) {
+        depthBlock.classList.remove('block-hidden');
+        depthInput.required = true;
+        const note = document.getElementById('depth-note');
+        note.style.display = 'block';
+        document.getElementById('depth-needed-by').textContent =
+          depthNeeded.map(k => DEPTH_PARAMS[k]).join(', ');
+      } else {
+        depthBlock.classList.add('block-hidden');
+        depthInput.required = false;
+        depthInput.value = '';
+        document.getElementById('depth-preview').innerHTML = '';
+      }
+
+      // ── Samples card: hide entirely when both blocks hidden ──
+      const samplesCard = document.getElementById('card-samples');
+      if (!needsThick && !needsDepth) {
+        samplesCard.classList.add('card-hidden');
+      } else {
+        samplesCard.classList.remove('card-hidden');
+      }
+
+      // ── Update step numbers to reflect visible cards ──
+      updateStepNumbers();
+    }
+
+    function updateStepNumbers() {
+      let n = 1;
+      document.querySelectorAll('#calc .card:not(.card-hidden) .card-num').forEach(el => {
+        el.textContent = n++;
+      });
+    }
+
+    // Wire up all param checkboxes
+    document.querySelectorAll('.param-check').forEach(c => {
+      c.addEventListener('change', updateFieldVisibility);
+    });
+
+    // Wire up energy mode checkboxes to be mutually exclusive and trigger rules
+    document.querySelectorAll('input[name="energy_mode"]').forEach(chk => {
+      chk.addEventListener('change', function () {
+        if (this.checked) {
+          document.querySelectorAll('input[name="energy_mode"]').forEach(other => {
+            if (other !== this) other.checked = false;
+          });
+        }
+        updateFieldVisibility();
+      });
+    });
+
+    // Run once on load to set initial state
+    updateFieldVisibility();
+
+    /* ════════════════════════════════════════════════
+       DOWNLOAD HELPER
+    ════════════════════════════════════════════════ */
+    let _downloadUrl = null;
+    function triggerDownload() {
+      if (_downloadUrl) { window.open(_downloadUrl, '_blank'); }
+    }
+
+    /* ════════════════════════════════════════════════
+       FORM SUBMIT → API
+    ════════════════════════════════════════════════ */
+    const VALID_ELEMENTS = new Set([
+      "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne", "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar",
+      "K", "Ca", "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn", "Ga", "Ge", "As", "Se", "Br", "Kr",
+      "Rb", "Sr", "Y", "Zr", "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn", "Sb", "Te", "I", "Xe",
+      "Cs", "Ba", "La", "Ce", "Pr", "Nd", "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb", "Lu", "Hf",
+      "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg", "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
+      "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm", "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs",
+      "Mt", "Ds", "Rg", "Cn", "Nh", "Fl", "Mc", "Lv", "Ts", "Og"
+    ]);
+
+    function validateFormula(formula) {
+      const terms = formula.split('+');
+      for (let term of terms) {
+        term = term.trim();
+        if (!term) {
+          throw new Error(`Empty component in chemical formula.`);
+        }
+        
+        let i = 0;
+        while (i < term.length && (/[0-9.]/).test(term[i])) {
+          i++;
+        }
+        const compound = term.substring(i).trim();
+        if (!compound) {
+          throw new Error(`Invalid chemical component in term "${term}"`);
+        }
+        
+        let idx = 0;
+        while (idx < compound.length) {
+          if ((/[A-Z]/).test(compound[idx])) {
+            let symbol = compound[idx++];
+            while (idx < compound.length && (/[a-z]/).test(compound[idx])) {
+              symbol += compound[idx++];
+            }
+            
+            if (!VALID_ELEMENTS.has(symbol)) {
+              throw new Error(`Element "${symbol}" does not exist in the periodic table.`);
+            }
+            
+            while (idx < compound.length && (/[0-9.]/).test(compound[idx])) {
+              idx++;
+            }
+          } else {
+            throw new Error(`Invalid character "${compound[idx]}" in formula component "${compound}". Every element symbol must start with an uppercase letter (e.g., PbO instead of Pbo).`);
+          }
+        }
+      }
+    }
+
+    let _lastBlob = null;
+    let _lastFilename = 'Shielding_Analysis.xls';
+
+    document.getElementById('shield-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const fd = new FormData(this);
+
+      // Gather selected params first — they drive what else is needed
+      const params = [...document.querySelectorAll('.param-check:checked')].map(c => c.value);
+      if (params.length === 0) {
+        alert('Please select at least one output parameter.');
+        return;
+      }
+
+      const sel = new Set(params);
+      const needsDensity = Object.keys(DENSITY_PARAMS).some(p => sel.has(p));
+      const needsEg = Object.keys(EG_PARAMS).some(p => sel.has(p));
+      const needsThick = ['tf', 'rpe', 'leq'].some(p => sel.has(p));
+      const needsDepth = sel.has('ebf') || sel.has('eabf');
+
+      const thicknesses = needsThick ? parseNums(fd.get('thicknesses')) : [];
+      const depths = needsDepth ? parseNums(fd.get('depths')) : [];
+
+      // Gather dynamic compositions and densities
+      const rows = document.querySelectorAll('.comp-tab-panel');
+      const compositions = [];
+      let hasMissingDensity = false;
+      let hasMissingEg = false;
+      let hasMissingFormula = false;
+      let hasMissingCn = false;
+      let validationError = null;
+
+      const MECHANICAL_PARAMS = [
+        'packing_density', 'dissociation_energy', 'youngs_modulus', 'bulk_modulus',
+        'shear_modulus', 'longitudinal_modulus', 'poissons_ratio', 'fractalbondconnectivity', 'hardness'
+      ];
+      const needsCn = MECHANICAL_PARAMS.some(p => sel.has(p));
+
+      rows.forEach((row, idx) => {
+        const formula = row.querySelector('.comp-formula-input').value.trim();
+        const densityVal = row.querySelector('.comp-density-input').value.trim();
+        const density = parseFloat(densityVal);
+        const codeInput = row.querySelector('.comp-code-input');
+        const code = codeInput ? codeInput.value.trim() || ('S' + (idx + 1)) : ('S' + (idx + 1));
+        const dopantInput = row.querySelector('.comp-dopant-input');
+        const dopant = dopantInput ? dopantInput.value.trim() : '';
+        const egInput = row.querySelector('.comp-eg-input');
+        const egVal = egInput ? egInput.value.trim() : '';
+        const eg = parseFloat(egVal);
+        const cnInput = row.querySelector('.comp-cn-input');
+        const cnVal = cnInput ? cnInput.value.trim() : '';
+
+        if (!formula) {
+          hasMissingFormula = true;
+        } else {
+          try {
+            validateFormula(formula);
+          } catch (e) {
+            validationError = `Row ${idx + 1}: ${e.message}`;
+          }
+        }
+        if (needsDensity && (isNaN(density) || density <= 0)) {
+          hasMissingDensity = true;
+        }
+        if (needsEg && (isNaN(eg) || eg <= 0)) {
+          hasMissingEg = true;
+        }
+        if (needsCn && !cnVal) {
+          hasMissingCn = true;
+        }
+
+        const basisRadio = row.querySelector('.comp-basis-radio:checked');
+        const basis = basisRadio ? basisRadio.value : 'mole';
+
+        compositions.push({
+          composition: formula,
+          density: isNaN(density) ? 0.0 : density,
+          code: code,
+          dopant: dopant,
+          eg: isNaN(eg) ? 0.0 : eg,
+          cn: cnVal,
+          basis: basis
+        });
+      });
+
+      if (validationError) {
+        alert(validationError);
+        const panel = document.getElementById('status-panel');
+        const spinner = document.getElementById('calc-spinner');
+        const statusMsg = document.getElementById('calc-status-msg');
+        const dlBtn = document.getElementById('btn-download');
+        panel.style.display = 'block';
+        spinner.style.display = 'none';
+        dlBtn.style.display = 'none';
+        statusMsg.textContent = `✗ Error: ${validationError}`;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        return;
+      }
+
+      // Validation for conditionally required fields
+      if (hasMissingFormula || compositions.length === 0) {
+        alert('Please specify at least one chemical composition.');
+        return;
+      }
+      if (needsDensity && hasMissingDensity) {
+        alert('Density is required for all compositions for the selected parameters.');
+        return;
+      }
+      if (needsEg && hasMissingEg) {
+        alert('Band Gap is required for all compositions for the selected parameters.');
+        return;
+      }
+      if (needsCn && hasMissingCn) {
+        alert('Coordination Numbers (CN) are required for all compositions for the selected mechanical properties.');
+        return;
+      }
+      if (needsThick && thicknesses.length === 0) {
+        alert('Thickness values are required for: Transmission Factor, RPE, L_eq.');
+        return;
+      }
+      if (needsDepth && depths.length === 0) {
+        alert('MFP depth values are required for: Build-up Factors.');
+        return;
+      }
+
+      // Gather selected isotopes
+      const isotopes = [...document.querySelectorAll('.iso-check:checked')].map(c => c.value);
+
+      let exportFormat = 'excel';
+      if (e.submitter && e.submitter.name === 'format') {
+        exportFormat = e.submitter.value;
+      }
+      const payload = {
+        composition: compositions[0].composition,
+        density: compositions[0].density,
+        compositions: compositions,
+        material_name: fd.get('material_name') || undefined,
+        target_ion: '',
+        energy_mode: fd.get('energy_mode') || "-1",
+        ...(needsThick && { thicknesses }),
+        ...(needsDepth && { depths_mfp: depths }),
+        isotopes,
+        params,
+        format: exportFormat
+      };
+
+      const username = localStorage.getItem('sme_username');
+      if (username) {
+        payload.username = username;
+      }
+
+      // Save to local history for Quick Reuse (Backend also saves string history)
+      pushHistory({
+        composition: payload.composition,
+        compositions: compositions,
+        material_name: payload.material_name,
+        energy_mode: payload.energy_mode,
+        density: payload.density,
+        target_ion: payload.target_ion || '',
+        thicknesses,
+        depths: depths,
+        isotopes,
+        params,
+        ts: Date.now()
+      });
+
+      // Show status
+      const panel = document.getElementById('status-panel');
+      const spinner = document.getElementById('calc-spinner');
+      const statusMsg = document.getElementById('calc-status-msg');
+      const dlBtn = document.getElementById('btn-download');
+      panel.style.display = 'block';
+      spinner.style.display = 'block';
+      dlBtn.style.display = 'none';
+      statusMsg.textContent = 'Sending to server…';
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      document.querySelectorAll('.btn-calc').forEach(btn => btn.disabled = true);
+
+      try {
+        /* ── POST to your C++ / Crow backend ──────────────────────────────
+           Your backend should:
+             1. Accept JSON with these fields
+             2. Run the shielding calculation
+             3. Return the .xls file as a binary response
+                  Content-Type: application/vnd.ms-excel
+                  Content-Disposition: attachment; filename="Shielding_Analysis_xxx.xls"
+    
+           The stdin order the C++ code currently expects:
+             Line 1: mixture formula
+             Line 2: useStandardOnly (0 or 1)
+             Line 3: density
+             Line 4: space-separated thicknesses
+             [For each selected isotope:]
+             Line N: isotope name string (e.g. "Am (241)")
+             Last:  space-separated MFP depths
+    
+           Recommended: wrap the C++ in a Crow HTTP server that accepts JSON
+           and spawns the calculation, then streams the generated .xls back.
+        ──────────────────────────────────────────────────────────────────── */
+        statusMsg.textContent = 'Running shielding calculation…';
+
+        const response = await fetch('/api/calculate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(errText || `Server error ${response.status}`);
+        }
+
+        // Get filename from header if provided
+        const disp = response.headers.get('Content-Disposition');
+        if (disp) { const m = disp.match(/filename="?([^"]+)"?/); if (m) _lastFilename = m[1]; }
+
+        const blob = await response.blob();
+        _lastBlob = blob;
+        _downloadUrl = URL.createObjectURL(blob);
+
+        statusMsg.textContent = `✓ Done! Click below to download "${_lastFilename}"`;
+        spinner.style.display = 'none';
+        dlBtn.style.display = 'block';
+
+        // Auto-trigger download
+        const a = document.createElement('a');
+        a.href = _downloadUrl;
+        a.download = _lastFilename;
+        a.click();
+
+      } catch (err) {
+        let displayMsg = err.message;
+        try {
+          const parsedErr = JSON.parse(err.message);
+          if (parsedErr.error) {
+            displayMsg = parsedErr.error;
+          }
+        } catch (e) {
+          // Message was not JSON, use raw err.message
+        }
+        statusMsg.textContent = `✗ Error: ${displayMsg}`;
+        spinner.style.display = 'none';
+      } finally {
+        document.querySelectorAll('.btn-calc').forEach(btn => btn.disabled = false);
+      }
+    });
+
+    /* ════════════════════════════════════════════════
+       RESET
+    ════════════════════════════════════════════════ */
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      document.getElementById('shield-form').reset();
+      // Clear composition tabs and re-add a fresh one
+      clearAllCompositionTabs();
+      addCompositionRow();
+      ['thick-preview', 'depth-preview'].forEach(id => { document.getElementById(id).innerHTML = ''; });
+      document.getElementById('status-panel').style.display = 'none';
+      _downloadUrl = null; _lastBlob = null;
+      updateFieldVisibility();
+    });
+
+    /* ════════════════════════════════════════════════
+       BOOT: check session
+    ════════════════════════════════════════════════ */
+    (function init() {
+      checkAuth();
+      renderHistory();
+      addCompositionRow();
+      goTo('home');
+    })();
+  </script>
+</body>
+
+</html>

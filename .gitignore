@@ -1,0 +1,12 @@
+# Exclude compiled executables
+server.exe
+server
+
+# Exclude python cache
+__pycache__/
+
+# Exclude local test spreadsheets or zip files
+*.xlsx
+*.xls
+*.zip
+test.xlsx

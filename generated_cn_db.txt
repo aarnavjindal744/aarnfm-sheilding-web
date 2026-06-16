@@ -1,0 +1,408 @@
+inline CNProps getExcelOxideCNProps(const std::string& oxide, int cn) {
+    std::string norm = oxide;
+    size_t first = norm.find_first_not_of(" ");
+    if (first != std::string::npos) {
+        size_t last = norm.find_last_not_of(" ");
+        norm = norm.substr(first, (last - first + 1));
+    }
+    if (norm == "V2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, 96.9000};
+        if (cn == 6) return CNProps{22.1000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "GeO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{14.0000, 49.5000};
+        if (cn == 6) return CNProps{14.2000, 94.2000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "B2O3") {
+        if (cn == 3) return CNProps{15.2000, 22.6000};
+        if (cn == 4) return CNProps{20.8000, 82.8000};
+        if (cn == 6) return CNProps{-1.0000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "V2O5") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{34.8000, 69.5000};
+        if (cn == 6) return CNProps{35.4000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "SiO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{13.9000, 68.0000};
+        if (cn == 6) return CNProps{14.0000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "TeO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, 54.0000};
+        if (cn == 6) return CNProps{14.7000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "As2O5") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{34.8000, 49.2000};
+        if (cn == 6) return CNProps{35.2000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Sb2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{23.0000, 35.3000};
+        if (cn == 6) return CNProps{-1.0000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Sb2O5") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, 31.8000};
+        if (cn == 6) return CNProps{35.7000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "P2O5") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{34.6000, 28.2000};
+        if (cn == 6) return CNProps{34.8000, -1.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Al2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{21.0000, 131.0000};
+        if (cn == 6) return CNProps{21.5000, 119.2000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "ZrO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{14.8000, 111.9000};
+        if (cn == 8) return CNProps{15.3000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "BeO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{7.0000, -1.0000};
+        if (cn == 6) return CNProps{-1.0000, 102.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "TiO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{14.1000, -1.0000};
+        if (cn == 6) return CNProps{14.4000, 101.2000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Ga2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{21.3000, -1.0000};
+        if (cn == 6) return CNProps{21.9000, 81.7000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "ThO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{16.4000, 80.8000};
+        if (cn == 8) return CNProps{16.7000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Fe2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{21.3000, -1.0000};
+        if (cn == 6) return CNProps{22.1000, 78.5000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "ZnO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{7.5000, -1.0000};
+        if (cn == 6) return CNProps{8.0000, 49.9000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "PbO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{9.0000, -1.0000};
+        if (cn == 6) return CNProps{11.1000, 25.3000};
+        if (cn == 8) return CNProps{12.3000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "CdO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{8.2000, -1.0000};
+        if (cn == 6) return CNProps{9.1000, 33.2000};
+        if (cn == 8) return CNProps{10.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Ta2O5") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{35.9000, 95.6000};
+        if (cn == 8) return CNProps{36.2000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Cr2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{21.9000, 91.4000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "MgO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{7.4000, -1.0000};
+        if (cn == 6) return CNProps{7.9000, 90.0000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Nb2O5") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{34.7000, -1.0000};
+        if (cn == 6) return CNProps{35.9000, 85.4000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Sc2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{22.7000, 84.6000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Li2O") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{8.0000, -1.0000};
+        if (cn == 6) return CNProps{9.0000, 77.9000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Er2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{24.3000, 74.9000};
+        if (cn == 8) return CNProps{26.3000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "MnO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{14.2000, 74.7000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Y2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{24.4000, 72.7000};
+        if (cn == 8) return CNProps{26.1000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Ce2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{26.3000, 71.1000};
+        if (cn == 8) return CNProps{28.2000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Tm2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{24.2000, 70.2000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "MoO3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{20.9000, -1.0000};
+        if (cn == 6) return CNProps{21.3000, 69.8000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Nd2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{25.6000, 68.9000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Gd2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{24.9000, 68.8000};
+        if (cn == 8) return CNProps{26.8000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "CoO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{7.4000, -1.0000};
+        if (cn == 6) return CNProps{8.0000, 68.8000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Pr2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{25.9000, 67.9000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "WO3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{20.9000, -1.0000};
+        if (cn == 6) return CNProps{21.3000, 67.8000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Yb2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{24.1000, 66.5000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "La2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{26.8000, 65.8000};
+        if (cn == 8) return CNProps{29.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "CaO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{9.4000, 64.1000};
+        if (cn == 8) return CNProps{10.5000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "SnO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{14.4000, -1.0000};
+        if (cn == 6) return CNProps{14.7000, 63.4000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Dy2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{24.5000, 63.4000};
+        if (cn == 8) return CNProps{26.3000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Sm2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{25.2000, 63.1000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "CuO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{7.5000, -1.0000};
+        if (cn == 6) return CNProps{7.9000, 59.5000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Eu2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{25.1000, 57.8000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "SrO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{10.6000, 45.4000};
+        if (cn == 8) return CNProps{11.8000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Cu2O") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{11.4000, 44.1000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "SnO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{8.9000, 39.9000};
+        if (cn == 8) return CNProps{-1.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "BaO") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{13.3000, 39.5000};
+        if (cn == 8) return CNProps{14.1000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "PbO2") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{15.0000, 38.1000};
+        if (cn == 8) return CNProps{15.9000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Na2O") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{12.3000, 31.9000};
+        if (cn == 8) return CNProps{14.8000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Bi2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{26.1000, 31.6000};
+        if (cn == 8) return CNProps{27.6000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "In2O3") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{23.3000, 28.1000};
+        if (cn == 8) return CNProps{24.7000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Ag2O") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{12.3000, -1.0000};
+        if (cn == 6) return CNProps{14.6000, 27.2000};
+        if (cn == 8) return CNProps{18.0000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "K2O") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{20.2000, 19.2000};
+        if (cn == 8) return CNProps{24.3000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Rb2O") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{23.6000, 18.8000};
+        if (cn == 8) return CNProps{27.6000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    if (norm == "Cs2O") {
+        if (cn == 3) return CNProps{-1.0000, -1.0000};
+        if (cn == 4) return CNProps{-1.0000, -1.0000};
+        if (cn == 6) return CNProps{31.7000, 14.2000};
+        if (cn == 8) return CNProps{37.3000, -1.0000};
+        return CNProps{-1.0, -1.0};
+    }
+    return CNProps{-1.0, -1.0};
+}

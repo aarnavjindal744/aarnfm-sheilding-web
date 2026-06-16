@@ -1,0 +1,78 @@
+
+struct ExcelOxideData {
+    double vi3 = -1.0;
+    double vi4 = -1.0;
+    double vi6 = -1.0;
+    double vi8 = -1.0;
+    double gi3 = -1.0;
+    double gi4 = -1.0;
+    double gi6 = -1.0;
+};
+
+inline ExcelOxideData getExcelOxideData(const std::string& oxide) {
+    std::string norm = oxide;
+    // Trim spaces
+    size_t first = norm.find_first_not_of(" ");
+    if (first != std::string::npos) {
+        size_t last = norm.find_last_not_of(" ");
+        norm = norm.substr(first, (last - first + 1));
+    }
+    if (norm == "V2O3") return ExcelOxideData{-1.0, -1.0, 22.1, -1.0, -1.0, 96.9, -1.0};
+    if (norm == "GeO2") return ExcelOxideData{-1.0, 14.0, 14.2, -1.0, -1.0, 49.5, 94.2};
+    if (norm == "B2O3") return ExcelOxideData{15.2, 20.8, -1.0, -1.0, 22.6, 82.8, -1.0};
+    if (norm == "V2O5") return ExcelOxideData{-1.0, 34.8, 35.4, -1.0, -1.0, 69.5, -1.0};
+    if (norm == "SiO2") return ExcelOxideData{-1.0, 13.9, 14.0, -1.0, -1.0, 68.0, -1.0};
+    if (norm == "TeO2") return ExcelOxideData{-1.0, -1.0, 14.7, -1.0, -1.0, 54.0, -1.0};
+    if (norm == "As2O5") return ExcelOxideData{-1.0, 34.8, 35.2, -1.0, -1.0, 49.2, -1.0};
+    if (norm == "Sb2O3") return ExcelOxideData{-1.0, 23.0, -1.0, -1.0, -1.0, 35.3, -1.0};
+    if (norm == "Sb2O5") return ExcelOxideData{-1.0, -1.0, 35.7, -1.0, -1.0, 31.8, -1.0};
+    if (norm == "P2O5") return ExcelOxideData{-1.0, 34.6, 34.8, -1.0, -1.0, 28.2, -1.0};
+    if (norm == "Al2O3") return ExcelOxideData{-1.0, 21.0, 21.5, -1.0, -1.0, 131.0, 119.2};
+    if (norm == "ZrO2") return ExcelOxideData{-1.0, -1.0, 14.8, 15.3, -1.0, -1.0, 111.9};
+    if (norm == "BeO") return ExcelOxideData{-1.0, 7.0, -1.0, -1.0, -1.0, -1.0, 102.0};
+    if (norm == "TiO2") return ExcelOxideData{-1.0, 14.1, 14.4, -1.0, -1.0, -1.0, 101.2};
+    if (norm == "Ga2O3") return ExcelOxideData{-1.0, 21.3, 21.9, -1.0, -1.0, -1.0, 81.7};
+    if (norm == "ThO2") return ExcelOxideData{-1.0, -1.0, 16.4, 16.7, -1.0, -1.0, 80.8};
+    if (norm == "Fe2O3") return ExcelOxideData{-1.0, 21.3, 22.1, -1.0, -1.0, -1.0, 78.5};
+    if (norm == "ZnO") return ExcelOxideData{-1.0, 7.5, 8.0, -1.0, -1.0, -1.0, 49.9};
+    if (norm == "PbO") return ExcelOxideData{-1.0, 9.0, 11.1, 12.3, -1.0, -1.0, 25.3};
+    if (norm == "CdO") return ExcelOxideData{-1.0, 8.2, 9.1, 10.0, -1.0, -1.0, 33.2};
+    if (norm == "Ta2O5") return ExcelOxideData{-1.0, -1.0, 35.9, 36.2, -1.0, -1.0, 95.6};
+    if (norm == "Cr2O3") return ExcelOxideData{-1.0, -1.0, 21.9, -1.0, -1.0, -1.0, 91.4};
+    if (norm == "MgO") return ExcelOxideData{-1.0, 7.4, 7.9, -1.0, -1.0, -1.0, 90.0};
+    if (norm == "Nb2O5") return ExcelOxideData{-1.0, 34.7, 35.9, -1.0, -1.0, -1.0, 85.4};
+    if (norm == "Sc2O3") return ExcelOxideData{-1.0, -1.0, 22.7, -1.0, -1.0, -1.0, 84.6};
+    if (norm == "Li2O") return ExcelOxideData{-1.0, 8.0, 9.0, -1.0, -1.0, -1.0, 77.9};
+    if (norm == "Er2O3") return ExcelOxideData{-1.0, -1.0, 24.3, 26.3, -1.0, -1.0, 74.9};
+    if (norm == "MnO2") return ExcelOxideData{-1.0, -1.0, 14.2, -1.0, -1.0, -1.0, 74.7};
+    if (norm == "Y2O3") return ExcelOxideData{-1.0, -1.0, 24.4, 26.1, -1.0, -1.0, 72.7};
+    if (norm == "Ce2O3") return ExcelOxideData{-1.0, -1.0, 26.3, 28.2, -1.0, -1.0, 71.1};
+    if (norm == "Tm2O3") return ExcelOxideData{-1.0, -1.0, 24.2, -1.0, -1.0, -1.0, 70.2};
+    if (norm == "MoO3") return ExcelOxideData{-1.0, 20.9, 21.3, -1.0, -1.0, -1.0, 69.8};
+    if (norm == "Nd2O3") return ExcelOxideData{-1.0, -1.0, 25.6, -1.0, -1.0, -1.0, 68.9};
+    if (norm == "Gd2O3") return ExcelOxideData{-1.0, -1.0, 24.9, 26.8, -1.0, -1.0, 68.8};
+    if (norm == "CoO") return ExcelOxideData{-1.0, 7.4, 8.0, -1.0, -1.0, -1.0, 68.8};
+    if (norm == "Pr2O3") return ExcelOxideData{-1.0, -1.0, 25.9, -1.0, -1.0, -1.0, 67.9};
+    if (norm == "WO3") return ExcelOxideData{-1.0, 20.9, 21.3, -1.0, -1.0, -1.0, 67.8};
+    if (norm == "Yb2O3") return ExcelOxideData{-1.0, -1.0, 24.1, -1.0, -1.0, -1.0, 66.5};
+    if (norm == "La2O3") return ExcelOxideData{-1.0, -1.0, 26.8, 29.0, -1.0, -1.0, 65.8};
+    if (norm == "CaO") return ExcelOxideData{-1.0, -1.0, 9.4, 10.5, -1.0, -1.0, 64.1};
+    if (norm == "SnO2") return ExcelOxideData{-1.0, 14.4, 14.7, -1.0, -1.0, -1.0, 63.4};
+    if (norm == "Dy2O3") return ExcelOxideData{-1.0, -1.0, 24.5, 26.3, -1.0, -1.0, 63.4};
+    if (norm == "Sm2O3") return ExcelOxideData{-1.0, -1.0, 25.2, -1.0, -1.0, -1.0, 63.1};
+    if (norm == "CuO") return ExcelOxideData{-1.0, 7.5, 7.9, -1.0, -1.0, -1.0, 59.5};
+    if (norm == "Eu2O3") return ExcelOxideData{-1.0, -1.0, 25.1, -1.0, -1.0, -1.0, 57.8};
+    if (norm == "SrO") return ExcelOxideData{-1.0, -1.0, 10.6, 11.8, -1.0, -1.0, 45.4};
+    if (norm == "Cu2O") return ExcelOxideData{-1.0, -1.0, 11.4, -1.0, -1.0, -1.0, 44.1};
+    if (norm == "SnO") return ExcelOxideData{-1.0, -1.0, 8.9, -1.0, -1.0, -1.0, 39.9};
+    if (norm == "BaO") return ExcelOxideData{-1.0, -1.0, 13.3, 14.1, -1.0, -1.0, 39.5};
+    if (norm == "PbO2") return ExcelOxideData{-1.0, -1.0, 15.0, 15.9, -1.0, -1.0, 38.1};
+    if (norm == "Na2O") return ExcelOxideData{-1.0, -1.0, 12.3, 14.8, -1.0, -1.0, 31.9};
+    if (norm == "Bi2O3") return ExcelOxideData{-1.0, -1.0, 26.1, 27.6, -1.0, -1.0, 31.6};
+    if (norm == "In2O3") return ExcelOxideData{-1.0, -1.0, 23.3, 24.7, -1.0, -1.0, 28.1};
+    if (norm == "Ag2O") return ExcelOxideData{-1.0, 12.3, 14.6, 18.0, -1.0, -1.0, 27.2};
+    if (norm == "K2O") return ExcelOxideData{-1.0, -1.0, 20.2, 24.3, -1.0, -1.0, 19.2};
+    if (norm == "Rb2O") return ExcelOxideData{-1.0, -1.0, 23.6, 27.6, -1.0, -1.0, 18.8};
+    if (norm == "Cs2O") return ExcelOxideData{-1.0, -1.0, 31.7, 37.3, -1.0, -1.0, 14.2};
+    return ExcelOxideData{};
+}
