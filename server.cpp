@@ -19676,7 +19676,11 @@ db.loadIsotopeData(100, FERMIUM_76);
             saveUsers();
             
             // Send the verification code asynchronously via real SMTP email in a background thread
+#ifdef _WIN32
             string cmd = "start /b py send_email.py \"" + email + "\" \"" + code + "\"";
+#else
+            string cmd = "py send_email.py \"" + email + "\" \"" + code + "\" &";
+#endif
             system(cmd.c_str());
             
             // Log fallback in console
@@ -19785,7 +19789,11 @@ db.loadIsotopeData(100, FERMIUM_76);
             userDB[matchedUser].verificationCode = code;
             saveUsers();
             
+#ifdef _WIN32
             string cmd = "start /b py send_email.py \"" + email + "\" \"" + code + "\" \"reset\" \"" + matchedUser + "\"";
+#else
+            string cmd = "py send_email.py \"" + email + "\" \"" + code + "\" \"reset\" \"" + matchedUser + "\" &";
+#endif
             system(cmd.c_str());
             
             cout << "\n[EMAIL SYSTEM] -> To: " << email << "\n"

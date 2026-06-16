@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --no-cache-dir pandas xlsxwriter matplotlib
 
 # Create a symlink from 'py' to 'python3' so C++ popen("py ...") calls work unmodified
-RUN ln -s /usr/bin/python3 /usr/bin/py
+RUN ln -s /usr/local/bin/python /usr/bin/py
 
 # Set the working directory
 WORKDIR /app
