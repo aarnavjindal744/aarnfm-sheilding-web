@@ -19679,7 +19679,7 @@ db.loadIsotopeData(100, FERMIUM_76);
 #ifdef _WIN32
             string cmd = "start /b py send_email.py \"" + email + "\" \"" + code + "\"";
 #else
-            string cmd = "py send_email.py \"" + email + "\" \"" + code + "\" &";
+            string cmd = "python3 send_email.py \"" + email + "\" \"" + code + "\" &";
 #endif
             system(cmd.c_str());
             
@@ -19792,7 +19792,7 @@ db.loadIsotopeData(100, FERMIUM_76);
 #ifdef _WIN32
             string cmd = "start /b py send_email.py \"" + email + "\" \"" + code + "\" \"reset\" \"" + matchedUser + "\"";
 #else
-            string cmd = "py send_email.py \"" + email + "\" \"" + code + "\" \"reset\" \"" + matchedUser + "\" &";
+            string cmd = "python3 send_email.py \"" + email + "\" \"" + code + "\" \"reset\" \"" + matchedUser + "\" &";
 #endif
             system(cmd.c_str());
             
@@ -20099,7 +20099,11 @@ db.loadIsotopeData(100, FERMIUM_76);
                 
                 filename = "Sheilding Analysis_" + sanitizedMatName + ".zip";
                 
+#ifdef _WIN32
                 string cmd = "py plotter.py \"" + filename + "\"";
+#else
+                string cmd = "python3 plotter.py \"" + filename + "\"";
+#endif
                 FILE* pipe = _popen(cmd.c_str(), "w");
                 if (pipe) {
                     fwrite(csvData.data(), 1, csvData.size(), pipe);
@@ -20128,7 +20132,11 @@ db.loadIsotopeData(100, FERMIUM_76);
                 
                 filename = "Sheilding Analysis_" + sanitizedMatName + ".xlsx";
                 
+#ifdef _WIN32
                 string cmd = "py xlsx_generator.py \"" + filename + "\"";
+#else
+                string cmd = "python3 xlsx_generator.py \"" + filename + "\"";
+#endif
                 FILE* pipe = _popen(cmd.c_str(), "w");
                 if (pipe) {
                     fwrite(csvData.data(), 1, csvData.size(), pipe);
@@ -20162,7 +20170,11 @@ db.loadIsotopeData(100, FERMIUM_76);
                 if (compositions.size() > 1) {
                     filename = "Sheilding Analysis_" + sanitizedMatName + ".zip";
                     
+#ifdef _WIN32
                     string cmd = "py -c \"import zipfile; zf = zipfile.ZipFile('" + filename + "', 'w'); ";
+#else
+                    string cmd = "python3 -c \"import zipfile; zf = zipfile.ZipFile('" + filename + "', 'w'); ";
+#endif
                     for (const auto& f : xlsFiles) {
                         cmd += "zf.write('" + f + "'); ";
                     }

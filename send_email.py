@@ -5,7 +5,7 @@ from email.mime.multipart import MIMEMultipart
 
 def send_email(to_email, code, email_type="verify", username=""):
     sender_email = "justaarnavjindal@gmail.com"
-    sender_password = "jfep ivij usqy gsrl"  # Provided by the user
+    sender_password = "unfm knbn vcch kkaz"  # Provided by the user
     
     if email_type == "reset":
         subject = "Reset your ProMatX Password"
